@@ -1,0 +1,77 @@
+###
+# 운영자 로그인
+POST http://localhost:3000/operator/login
+Content-Type: application/json
+
+{
+  "no": "admin",
+  "password": "asdf1234"
+}
+
+###
+# 사진 업로드
+# 갤러리에 업로드할 사진들을 모두 업로드하고 각 url 기억
+POST http://localhost:3002
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA0OTA2MywiZXhwIjoxNjE2MDQ5NjYzLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.W9wuIYVVW2xsVzx1X6S1NRy-y693ES_C022jeamfJ3_SFmohfYY3iboGVTpvOFVB4kOSWx6IQsu_q7ZpyB9gww
+
+--WebAppBoundary
+Content-Disposition: form-data; name="upload"; filename="03.jpg"
+Content-Type: image/jpeg
+
+< ../../test-files/03.jpg
+--WebAppBoundary--
+
+###
+# 갤러리 생성
+# 위에서 업로드한 사진의 URL을 pictures의 각 객체의 url로 삽입
+POST http://localhost:3001/v1/gallery
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA0ODQ1NiwiZXhwIjoxNjE2MDQ5MDU2LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.Jzo-XY9J4Nav9uTLZANnHnnRSF1xQIM_7KNbkza4lO8lTpsGdKoe9JZVznRJ0JPiXHVMtmVp1MS3po1bHa0Lpw
+Content-Type: application/json
+
+{
+  "pictures": [
+    {
+      "url": "http://localhost:3002/89e40c8e-0f27-4eaa-96cd-0fb145dbaa81.jpg",
+      "caption": "갤러리 테스트"
+    },
+    {
+      "url": "http://localhost:3002/b764686d-794d-4a4f-bdba-9d24073f1e2d.jpg"
+    }
+  ],
+  "title": "갤러리 테스트"
+}
+
+###
+# 갤러리 목록
+GET http://localhost:3001/v1/gallery
+
+###
+# 특정 갤러리
+GET http://localhost:3001/v1/gallery/6052f1e5b49c9f047c11d735
+
+###
+# 갤러리 수정
+# 사진을 바꾸고 싶다면 업로드 api를 이용하여 사진 업로드
+PUT http://localhost:3001/v1/gallery/6052f1e5b49c9f047c11d735
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA0OTA2MywiZXhwIjoxNjE2MDQ5NjYzLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.W9wuIYVVW2xsVzx1X6S1NRy-y693ES_C022jeamfJ3_SFmohfYY3iboGVTpvOFVB4kOSWx6IQsu_q7ZpyB9gww
+Content-Type: application/json
+
+{
+  "pictures": [
+    {
+      "url": "http://localhost:3002/8287e105-74f8-445d-8c70-930dd74430cf.jpg"
+    },
+    {
+      "url": "http://localhost:3002/c89c5259-90f2-4ec6-876d-190bcb6ad3af.jpg",
+      "caption": "새로 올린 사진"
+    }
+  ],
+  "title": "수정 테스트"
+}
+
+
+###
+# 갤러리 삭제
+DELETE http://localhost:3001/v1/gallery/6052f1e5b49c9f047c11d735
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA0OTA2MywiZXhwIjoxNjE2MDQ5NjYzLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.W9wuIYVVW2xsVzx1X6S1NRy-y693ES_C022jeamfJ3_SFmohfYY3iboGVTpvOFVB4kOSWx6IQsu_q7ZpyB9gww

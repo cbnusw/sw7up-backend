@@ -1,0 +1,113 @@
+###
+# 관리자 로그인
+POST http://localhost:3000/operator/login
+Content-Type: application/json
+
+{
+  "no": "admin",
+  "password": "asdf1234"
+}
+
+###
+# 등록할 첨부 파일 업로드
+POST http://localhost:3002
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDgxNzc0MCwiZXhwIjoxNjE0ODE4MzQwLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.JYb5jwuL_N1e99zunYjXd7Z1pPpaRShFedAgZ-MLT5oVj5V2La2Ms5_Emu5elt4gahtUQb8MZ1I0uzzG1pCFww
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="upload"; filename="03.jpg"
+Content-Type: image/jpeg
+
+< ../test-files/03.jpg
+--WebAppBoundary--
+
+###
+# 자료 등록
+POST http://localhost:3001/v1/resource
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDgxNzc0MCwiZXhwIjoxNjE0ODE4MzQwLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.JYb5jwuL_N1e99zunYjXd7Z1pPpaRShFedAgZ-MLT5oVj5V2La2Ms5_Emu5elt4gahtUQb8MZ1I0uzzG1pCFww
+Content-Type: application/json
+
+{
+  "title": "자료 등록 테스트",
+  "content": "<h1>자료 등록 테스트</h1><p>자료를 등록하였습니다</p>",
+  "attachments": [
+    {
+      "access": [],
+      "ref": null,
+      "refModel": null,
+      "_id": "604029d6d993a92958daf5df",
+      "url": "http://localhost:3002/3e30cbf2-839f-4e2b-9708-2bdd32d72579.jpg",
+      "filename": "01.jpg",
+      "mimetype": "image/jpeg",
+      "size": 30169,
+      "uploader": "603f4b469b5150487c80580b",
+      "uploadedAt": "2021-03-04T00:29:10.897Z",
+      "__v": 0
+    },
+    {
+      "access": [],
+      "ref": null,
+      "refModel": null,
+      "_id": "604029fdd993a92958daf5e0",
+      "url": "http://localhost:3002/723795f7-81cf-4795-960a-3679893afffa.jpg",
+      "filename": "02.jpg",
+      "mimetype": "image/jpeg",
+      "size": 4461417,
+      "uploader": "603f4b469b5150487c80580b",
+      "uploadedAt": "2021-03-04T00:29:49.213Z",
+      "__v": 0
+    }
+  ]
+}
+
+###
+# 자료 목록
+GET http://localhost:3001/v1/resource
+
+###
+# 특정 자료
+GET http://localhost:3001/v1/resource/60402a231804bf7ce4e2d6e2
+
+###
+# 자료 수정
+PUT http://localhost:3001/v1/resource/60402a231804bf7ce4e2d6e2
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDgxNzc0MCwiZXhwIjoxNjE0ODE4MzQwLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.JYb5jwuL_N1e99zunYjXd7Z1pPpaRShFedAgZ-MLT5oVj5V2La2Ms5_Emu5elt4gahtUQb8MZ1I0uzzG1pCFww
+Content-Type: application/json
+
+{
+  "title": "자료 수정 테스트",
+  "content": "<h1>자료 수정 테스트</h1><p>자료를 수정했습니다.</p>",
+  "attachments": [
+    {
+      "access": [],
+      "ref": "60402a231804bf7ce4e2d6e2",
+      "refModel": "Resource",
+      "_id": "604029d6d993a92958daf5df",
+      "url": "http://localhost:3002/3e30cbf2-839f-4e2b-9708-2bdd32d72579.jpg",
+      "filename": "01.jpg",
+      "mimetype": "image/jpeg",
+      "size": 30169,
+      "uploader": "603f4b469b5150487c80580b",
+      "uploadedAt": "2021-03-04T00:29:10.897Z",
+      "__v": 0
+    },
+    {
+      "access": [],
+      "ref": null,
+      "refModel": null,
+      "_id": "60402afbd993a92958daf5e1",
+      "url": "http://localhost:3002/08b721df-955e-4361-8f78-08aee98a93a6.jpg",
+      "filename": "03.jpg",
+      "mimetype": "image/jpeg",
+      "size": 3008184,
+      "uploader": "603f4b469b5150487c80580b",
+      "uploadedAt": "2021-03-04T00:34:03.597Z",
+      "__v": 0
+    }
+  ]
+}
+
+###
+# 자료 삭제
+DELETE http://localhost:3001/v1/resource/60402a231804bf7ce4e2d6e2
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDgxNzc0MCwiZXhwIjoxNjE0ODE4MzQwLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.JYb5jwuL_N1e99zunYjXd7Z1pPpaRShFedAgZ-MLT5oVj5V2La2Ms5_Emu5elt4gahtUQb8MZ1I0uzzG1pCFww

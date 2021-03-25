@@ -1,0 +1,85 @@
+###
+# 관리자 로그인
+POST http://localhost:3000/operator/login
+Content-Type: application/json
+
+{
+  "no": "admin",
+  "password": "asdf1234"
+}
+
+###
+# 공지사항 쓰기(모두 공개)
+POST http://localhost:3001/v1/notice
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA1NjE5NywiZXhwIjoxNjE2MDU2Nzk3LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.Rfw8sfshoWLMqEVQFHeB7t5NRmnt65MMSL5ju4S5p_FHTrFatBXGuxfkQJt4I1FltPUcYgj1M83bgS5WlGCPOQ
+Content-Type: application/json
+
+{
+  "category": "사업팀",
+  "title": "공지글 테스트",
+  "content": "<h1>공지글 테스트</h1><p>공지글 내용</p>"
+}
+
+### 공지사항 쓰기(학생 및 교직원 공개)
+POST http://localhost:3001/v1/notice
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA1NjE5NywiZXhwIjoxNjE2MDU2Nzk3LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.Rfw8sfshoWLMqEVQFHeB7t5NRmnt65MMSL5ju4S5p_FHTrFatBXGuxfkQJt4I1FltPUcYgj1M83bgS5WlGCPOQ
+Content-Type: application/json
+
+{
+  "category": "사업팀",
+  "title": "공지글 테스트",
+  "access": ["student", "staff"],
+  "content": "<h1>공지글 테스트</h1><p>공지글 내용</p>"
+}
+
+###
+# 공지글 목록 가져오기
+GET http://localhost:3001/v1/notice
+
+###
+# 특정 공지글 가져오기(모두 공개)
+GET http://localhost:3001/v1/notice/60530f903f7a005044b90a0e
+
+###
+# 특정 공지글 가져오기(학생, 교직원 공개)
+GET http://localhost:3001/v1/notice/60530fa33f7a005044b90a0f
+
+###
+# 특정 공지글 가져오기(학생, 교직원 공개)
+GET http://localhost:3001/v1/notice/60530fa33f7a005044b90a0f
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA1NjE5NywiZXhwIjoxNjE2MDU2Nzk3LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.Rfw8sfshoWLMqEVQFHeB7t5NRmnt65MMSL5ju4S5p_FHTrFatBXGuxfkQJt4I1FltPUcYgj1M83bgS5WlGCPOQ
+
+
+###
+# 학생 로그인
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+  "no": "20210010001",
+  "password": "asdf1234"
+}
+
+###
+# 특정 공지글 가져오기(학생, 교직원 공개)
+GET http://localhost:3001/v1/notice/60530fa33f7a005044b90a0f
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjM0MTI2OTU2NDVhNjAwNGVmYzAiLCJyb2xlcyI6WyJzdHVkZW50Il0sInBlcm1pc3Npb25zIjpbXSwiaW5mbyI6IjYwNTE2MzQxMjY5NTY0NWE2MDA0ZWZjMSIsImlhdCI6MTYxNjA1NjU4OCwiZXhwIjoxNjE2MDU3MTg4LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.FPtI-g-N6eEW-vXfhKt9POp5jSjjRwqnDzvu4AmEH3Qie6kV19DqkMyAdc79c8kpfdJxeV-cjGM_Ep0k5ukMCQ
+
+
+###
+# 공지글 수정하기
+PUT http://localhost:3001/v1/notice/60530f903f7a005044b90a0e
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA1NjE5NywiZXhwIjoxNjE2MDU2Nzk3LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.Rfw8sfshoWLMqEVQFHeB7t5NRmnt65MMSL5ju4S5p_FHTrFatBXGuxfkQJt4I1FltPUcYgj1M83bgS5WlGCPOQ
+Content-Type: application/json
+
+{
+  "category": "전공교육센터",
+  "title": "공지글 수정 테스트",
+  "access": ["staff"],
+  "content": "<h1>공지글 수정 테스트</h1><p>공지글 내용 수정</p>"
+}
+
+###
+# 공지사항 삭제
+DELETE http://localhost:3001/v1/notice/60530f903f7a005044b90a0e
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA1NjE5NywiZXhwIjoxNjE2MDU2Nzk3LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.Rfw8sfshoWLMqEVQFHeB7t5NRmnt65MMSL5ju4S5p_FHTrFatBXGuxfkQJt4I1FltPUcYgj1M83bgS5WlGCPOQ

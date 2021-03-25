@@ -1,0 +1,197 @@
+###
+# QnA 생성(비로그인)
+POST http://localhost:3001/v1/qna
+Content-Type: application/json
+
+{
+  "category": "기초컴퓨터프로그래밍",
+  "title": "비로그인 질문 테스트",
+  "content": "질문이 있습니다.",
+  "password": "asdf",
+  "writerInfo": {
+    "name": "홍길동",
+    "department": "컴퓨터공학과",
+    "email": "ahnmo777@gmail.com"
+  }
+}
+
+###
+# 질문 목록
+GET http://localhost:3001/v1/qna
+
+###
+# 관리자 로그인
+POST http://localhost:3000/operator/login
+Content-Type: application/json
+
+{
+  "no": "admin",
+  "password": "asdf1234"
+}
+
+###
+# 답변 등록
+POST http://localhost:3001/v1/qna/6040f1ace837aa571082bba9/reply
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwOWJjMjQ5ZTkzODRhMDhmOGVkZTciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA5YmMzNDllOTM4NGEwOGY4ZWRlOCIsImlhdCI6MTYxNDg2ODkzMCwiZXhwIjoxNjE0ODY5NTMwLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.T5oRCC_EV1xhXMVwYUtZYbYCEyxb-sdJ1akdQlWX0HjAJ8NYf3aVetgkSwoXh_MbVnwoAO9AJ3mwofyNCeNfgA
+Content-Type: application/json
+
+{
+  "content": "관리자 답변"
+}
+
+###
+# 질문 목록
+GET http://localhost:3001/v1/qna
+
+###
+# 특정 질문 가져오기
+GET http://localhost:3001/v1/qna/6040f1ace837aa571082bba9
+
+###
+# 특정 질문 가져오기(관리자)
+GET http://localhost:3001/v1/qna/6040f1ace837aa571082bba9
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwOWJjMjQ5ZTkzODRhMDhmOGVkZTciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA5YmMzNDllOTM4NGEwOGY4ZWRlOCIsImlhdCI6MTYxNDg2ODkzMCwiZXhwIjoxNjE0ODY5NTMwLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.T5oRCC_EV1xhXMVwYUtZYbYCEyxb-sdJ1akdQlWX0HjAJ8NYf3aVetgkSwoXh_MbVnwoAO9AJ3mwofyNCeNfgA
+
+###
+# 답글 달기(비로그인 회원)
+POST http://localhost:3001/v1/qna/6040f1ace837aa571082bba9/reply
+Content-Type: application/json
+
+{
+  "content": "감사합니다.",
+  "password": "asdf"
+}
+
+###
+# 대댓글 달기(관리자)
+POST http://localhost:3001/v1/qna/6040f1ace837aa571082bba9/reply/6040f24ce837aa571082bbab
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwOWJjMjQ5ZTkzODRhMDhmOGVkZTciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA5YmMzNDllOTM4NGEwOGY4ZWRlOCIsImlhdCI6MTYxNDg2ODkzMCwiZXhwIjoxNjE0ODY5NTMwLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.T5oRCC_EV1xhXMVwYUtZYbYCEyxb-sdJ1akdQlWX0HjAJ8NYf3aVetgkSwoXh_MbVnwoAO9AJ3mwofyNCeNfgA
+Content-Type: application/json
+
+{
+  "content": "네~"
+}
+
+###
+# 대댓글 달기(비로그인)
+POST http://localhost:3001/v1/qna/6040f1ace837aa571082bba9/reply/6040f24ce837aa571082bbab
+Content-Type: application/json
+
+{
+  "password": "asdf",
+  "content": "네~"
+}
+
+###
+# Check Password
+POST http://localhost:3001/v1/qna/6040f1ace837aa571082bba9/password
+Content-Type: application/json
+
+{
+  "password": "asdf"
+}
+
+###
+# QnA 수정
+PUT http://localhost:3001/v1/qna/6040f1ace837aa571082bba9
+Content-Type: application/json
+
+{
+  "content": "질문을 수정했습니다.",
+  "password": "asdf"
+}
+
+###
+# 댓글 수정(본인 댓글)
+PUT http://localhost:3001/v1/qna/6040f1ace837aa571082bba9/reply/6040f24ce837aa571082bbab
+Content-Type: application/json
+
+{
+  "password": "asdf",
+  "content": "감사용~"
+}
+
+###
+# 댓글 수정(다른 사람 댓글)
+PUT http://localhost:3001/v1/qna/6040f1ace837aa571082bba9/reply/6040f1f6e837aa571082bbaa
+Content-Type: application/json
+
+{
+  "password": "asdf",
+  "content": "다른 사람의 댓글을 수정"
+}
+
+###
+# 댓글 수정(관리자 본인 글)
+PUT http://localhost:3001/v1/qna/6040f1ace837aa571082bba9/reply/6040f1f6e837aa571082bbaa
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwOWJjMjQ5ZTkzODRhMDhmOGVkZTciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA5YmMzNDllOTM4NGEwOGY4ZWRlOCIsImlhdCI6MTYxNDg2OTMzNywiZXhwIjoxNjE0ODY5OTM3LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.j0PcZu-7lEAcx7sPQwRamAM0rAIcI_bZX02SMFwl79j9zs8Ei_WZgapV4-ufddVLorqHfxh9suNc5xSHPYWKJQ
+Content-Type: application/json
+
+{
+  "content": "관리자 댓글 수정"
+}
+
+###
+# Confirm 처리
+PATCH http://localhost:3001/v1/qna/603f4b416b9e84823c19bd48/confirm
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDc2MjEyMywiZXhwIjoxNjE0NzYyNzIzLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.fgM6OG4TYKA8hLCEtpBOwSS5Vt7zCwZQqkVcY42csQOw_ZCbeYEn0OEMPKyKDrlgaG9ehH7BeXbgNofxzrspEA
+Content-Type: application/json
+
+{
+  "confirm": true
+}
+
+###
+# 질문 삭제하기
+DELETE http://localhost:3001/v1/qna/603f4bff6ab8b920bc7eb4ac
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDc2MjEyMywiZXhwIjoxNjE0NzYyNzIzLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.fgM6OG4TYKA8hLCEtpBOwSS5Vt7zCwZQqkVcY42csQOw_ZCbeYEn0OEMPKyKDrlgaG9ehH7BeXbgNofxzrspEA
+
+###
+# 학생 로그인
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+  "no": "20210010001",
+  "password": "asdf1234"
+}
+
+###
+# QnA 생성(로그인)
+POST http://localhost:3001/v1/qna
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNlY2U4ZTI2ODhmNjM4Y2M4NTEzOTYiLCJyb2xlcyI6WyJzdHVkZW50Il0sInBlcm1pc3Npb25zIjpbXSwiaW5mbyI6IjYwM2VjZThlMjY4OGY2MzhjYzg1MTM5NyIsImlhdCI6MTYxNDc2MjU0MSwiZXhwIjoxNjE0NzYzMTQxLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.BvY5ONJXcrrNNMUQje_4axCTb0JOaSWxMQJRWm8DK_p7lwyen1gh7Fh7oDtRTO11Vbob-jTZ4GRO30ey2UL6VQ
+Content-Type: application/json
+
+{
+  "category": "기초컴퓨터프로그래밍",
+  "title": "비로그인 질문 테스트",
+  "content": "질문이 있습니다."
+}
+
+###
+# 특정 질문 가저오기(로그인한 회원 작성 글)
+GET http://localhost:3001/v1/qna/603f525d1804bf7ce4e2d6df
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNlY2U4ZTI2ODhmNjM4Y2M4NTEzOTYiLCJyb2xlcyI6WyJzdHVkZW50Il0sInBlcm1pc3Npb25zIjpbXSwiaW5mbyI6IjYwM2VjZThlMjY4OGY2MzhjYzg1MTM5NyIsImlhdCI6MTYxNDc2MjU0MSwiZXhwIjoxNjE0NzYzMTQxLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.BvY5ONJXcrrNNMUQje_4axCTb0JOaSWxMQJRWm8DK_p7lwyen1gh7Fh7oDtRTO11Vbob-jTZ4GRO30ey2UL6VQ
+
+###
+# 댓글 달기
+POST http://localhost:3001/v1/qna/603f525d1804bf7ce4e2d6df/reply
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDc2Mjc0MywiZXhwIjoxNjE0NzYzMzQzLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.ndOxdqY7rhS6rtFgZvfFokuEQq-tGHNp1Z1-oz5peOSJ3_CQxBnNwxjUEPk02nETtbtIbo2j1yUjz9uuqqYi1w
+Content-Type: application/json
+
+{
+  "content": "관리자 댓글"
+}
+
+###
+# 대댓글 달기(로그인한 학생)
+POST http://localhost:3001/v1/qna/603f525d1804bf7ce4e2d6df/reply/603f530c1804bf7ce4e2d6e0
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNlY2U4ZTI2ODhmNjM4Y2M4NTEzOTYiLCJyb2xlcyI6WyJzdHVkZW50Il0sInBlcm1pc3Npb25zIjpbXSwiaW5mbyI6IjYwM2VjZThlMjY4OGY2MzhjYzg1MTM5NyIsImlhdCI6MTYxNDc2MjU0MSwiZXhwIjoxNjE0NzYzMTQxLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.BvY5ONJXcrrNNMUQje_4axCTb0JOaSWxMQJRWm8DK_p7lwyen1gh7Fh7oDtRTO11Vbob-jTZ4GRO30ey2UL6VQ
+Content-Type: application/json
+
+{
+  "content": "감사합니다."
+}
+
+
+

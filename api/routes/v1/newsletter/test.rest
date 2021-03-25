@@ -1,0 +1,47 @@
+###
+# 관리자 로그인
+POST http://localhost:3000/operator/login
+Content-Type: application/json
+
+{
+  "no": "admin",
+  "password": "asdf1234"
+}
+
+###
+# 뉴스레터 등록
+POST http://localhost:3001/v1/newsletter
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA1NTYyNCwiZXhwIjoxNjE2MDU2MjI0LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.nGhm4nvaxqaV2e3XPC38jd9FNYUb71NnRMnICj1E-QkqDsoYSfSNqM-ibwDooz7TznNhwezK_lCed5BZqRuFTg
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="newsletter.zip"
+Content-Type: application/zip
+
+< ../../test-files/newsletter.zip
+--WebAppBoundary--
+
+--WebAppBoundary
+Content-Disposition: form-data; name="yearMonth"
+
+202007
+--WebAppBoundary--
+
+--WebAppBoundary
+Content-Disposition: form-data; name="title"
+
+뉴스레터 Vol.1
+--WebAppBoundary--
+
+###
+# 뉴스레터 목록 가져오기
+GET http://localhost:3001/v1/newsletter
+
+###
+# 특정 뉴스레터 가져오기
+GET http://localhost:3001/v1/newsletter/60530d54e4604a376c74d96e
+
+###
+# 특정 뉴스레터 삭제하기
+DELETE http://localhost:3001/v1/newsletter/60530d54e4604a376c74d96e
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA1NTYyNCwiZXhwIjoxNjE2MDU2MjI0LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.nGhm4nvaxqaV2e3XPC38jd9FNYUb71NnRMnICj1E-QkqDsoYSfSNqM-ibwDooz7TznNhwezK_lCed5BZqRuFTg

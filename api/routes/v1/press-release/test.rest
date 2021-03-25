@@ -1,0 +1,46 @@
+###
+# 관리자 로그인
+POST http://localhost:3000/operator/login
+Content-Type: application/json
+
+{
+  "no": "admin",
+  "password": "asdf1234"
+}
+
+###
+# 보도 자료 생성
+POST http://localhost:3001/v1/press-release
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA1NzEyOCwiZXhwIjoxNjE2MDU3NzI4LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.RUU8FnpcNDkaxHiRGJl50uj1VYHD679DcCk0o_dK8g965IOKwglRZctZi9QnTY_wOBUX0yClIY1GFnvV0MxPAw
+Content-Type: application/json
+
+{
+  "title": "보도자료 테스트",
+  "content": "<h1>보도자료</h1><p>보도자료 테스트</p>",
+  "link": "https://sw7up.cbnu.ac.kr"
+}
+
+###
+# 보도 자료 목록
+GET http://localhost:3001/v1/press-release
+
+###
+# 특정 보도 자료
+GET http://localhost:3001/v1/press-release/60531334dd4db535084cde11
+
+###
+# 보도 자료 수정
+PUT http://localhost:3001/v1/press-release/60531334dd4db535084cde11
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA1NzEyOCwiZXhwIjoxNjE2MDU3NzI4LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.RUU8FnpcNDkaxHiRGJl50uj1VYHD679DcCk0o_dK8g965IOKwglRZctZi9QnTY_wOBUX0yClIY1GFnvV0MxPAw
+Content-Type: application/json
+
+{
+  "title": "보도자료 수정 테스트",
+  "content": "<h1>수정된 보도자료</h1><p>수정된 본문</p>",
+  "link": "https://sw7up.cbnu.ac.kr"
+}
+
+###
+# 보도 자료 삭제
+DELETE http://localhost:3001/v1/press-release/60531334dd4db535084cde11
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDUxNjBmNTI2OTU2NDVhNjAwNGVmYmUiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNTE2MGY1MjY5NTY0NWE2MDA0ZWZiZiIsImlhdCI6MTYxNjA1NzEyOCwiZXhwIjoxNjE2MDU3NzI4LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.RUU8FnpcNDkaxHiRGJl50uj1VYHD679DcCk0o_dK8g965IOKwglRZctZi9QnTY_wOBUX0yClIY1GFnvV0MxPAw

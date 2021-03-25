@@ -1,0 +1,159 @@
+###
+# 관리자 로그인
+POST http://localhost:3000/operator/login
+Content-Type: application/json
+
+{
+  "no": "admin",
+  "password": "asdf1234"
+}
+
+###
+# 학생 목록
+GET http://localhost:3001/v1/user/student
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwMzE5NTY5OGFmMjQ4MTBhZmM4YjQiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDAzMTk1Njk4YWYyNDgxMGFmYzhiNSIsImlhdCI6MTYxNDgzMzQ4MSwiZXhwIjoxNjE0ODM0MDgxLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.dTBiBLMS_KGgAi752QJRNUvZT1odYByenWEf3PN2sneVk0KSiUb6iHEwKemnYUuVHEVSo45VA-dw2uqK0I_KFg
+
+###
+# 특정 학생 정보
+GET http://localhost:3001/v1/user/student/603ece8e2688f638cc851397
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDgxODM0OSwiZXhwIjoxNjE0ODE4OTQ5LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.g8SctjONOAoIUr9yoeToumCsS0ejSlsX2nfxrkSqBa5f20iEgbmhI5Xt0OWjhlrprFYoYG-GgNoC6LdnjbqKSw
+
+###
+# 교직원 목록
+GET http://localhost:3001/v1/user/staff
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwMzE5NTY5OGFmMjQ4MTBhZmM4YjQiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDAzMTk1Njk4YWYyNDgxMGFmYzhiNSIsImlhdCI6MTYxNDgzMzQ4MSwiZXhwIjoxNjE0ODM0MDgxLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.dTBiBLMS_KGgAi752QJRNUvZT1odYByenWEf3PN2sneVk0KSiUb6iHEwKemnYUuVHEVSo45VA-dw2uqK0I_KFg
+
+###
+# 특정 교직원 정보
+GET http://localhost:3001/v1/user/staff/603ecea32688f638cc851399
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDgxODM0OSwiZXhwIjoxNjE0ODE4OTQ5LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.g8SctjONOAoIUr9yoeToumCsS0ejSlsX2nfxrkSqBa5f20iEgbmhI5Xt0OWjhlrprFYoYG-GgNoC6LdnjbqKSw
+
+###
+# 운영자 정보
+GET http://localhost:3001/v1/user/operator
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDgxODM0OSwiZXhwIjoxNjE0ODE4OTQ5LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.g8SctjONOAoIUr9yoeToumCsS0ejSlsX2nfxrkSqBa5f20iEgbmhI5Xt0OWjhlrprFYoYG-GgNoC6LdnjbqKSw
+
+###
+# 특정 운영자 정보
+GET http://localhost:3001/v1/user/operator/603ece6960cbe8380c74c323
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDgxODM0OSwiZXhwIjoxNjE0ODE4OTQ5LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.g8SctjONOAoIUr9yoeToumCsS0ejSlsX2nfxrkSqBa5f20iEgbmhI5Xt0OWjhlrprFYoYG-GgNoC6LdnjbqKSw
+
+###
+# 학생 등록
+POST http://localhost:3001/v1/user/student
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDNmNGI0NjliNTE1MDQ4N2M4MDU4MGEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwM2Y0YjQ2OWI1MTUwNDg3YzgwNTgwYiIsImlhdCI6MTYxNDgxODk3NCwiZXhwIjoxNjE0ODE5NTc0LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.YzS40M5OM5xUhXirxSaBsa9GUmYFDVC-fvtqractrxbF3onaEiUDzkW--OFSm4dKYXbVtGMeFv376lxpRKw1-Q
+Content-Type: application/json
+
+{
+  "no": "20210010003",
+  "password": "asdf1234",
+  "info": {
+    "name": "임꺽정",
+    "email": "lim@test.com",
+    "phone": "01099991111",
+    "department": "정보통신공학부"
+  }
+}
+
+###
+# 교직원 등록
+POST http://localhost:3001/v1/user/staff
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwMzE5NTY5OGFmMjQ4MTBhZmM4YjQiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDAzMTk1Njk4YWYyNDgxMGFmYzhiNSIsImlhdCI6MTYxNDgyMjEwNSwiZXhwIjoxNjE0ODIyNzA1LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.h2u262477sNBzlCfJdq8fnNfpkFSWaQoFjxIT0Syz2aFtUT0-l90ACHkqtVWJjVrUyFIWiidwBLdkvmfw-5SiQ
+Content-Type: application/json
+
+{
+  "no": "543213",
+  "password": "asdf1234",
+  "info": {
+    "name": "임교수",
+    "email": "lim@cbnu.ac.kr",
+    "phone": "01099992222",
+    "department": "정보통신공학부",
+    "position": "교수"
+  }
+}
+
+###
+# 운영자 등록
+POST http://localhost:3001/v1/user/operator
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwMzE5NTY5OGFmMjQ4MTBhZmM4YjQiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDAzMTk1Njk4YWYyNDgxMGFmYzhiNSIsImlhdCI6MTYxNDgyMjEwNSwiZXhwIjoxNjE0ODIyNzA1LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.h2u262477sNBzlCfJdq8fnNfpkFSWaQoFjxIT0Syz2aFtUT0-l90ACHkqtVWJjVrUyFIWiidwBLdkvmfw-5SiQ
+Content-Type: application/json
+
+{
+  "no": "987654",
+  "password": "asdf1234",
+  "info": {
+    "name": "운영자1",
+    "email": "operator@cbnu.ac.kr",
+    "phone": "01088882222",
+    "department": "SW중심대학사업단"
+  }
+}
+
+###
+# 학생 정보 수정
+PUT http://localhost:3001/v1/user/student/603ece8e2688f638cc851397
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwMzE5NTY5OGFmMjQ4MTBhZmM4YjQiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDAzMTk1Njk4YWYyNDgxMGFmYzhiNSIsImlhdCI6MTYxNDgzMzQ4MSwiZXhwIjoxNjE0ODM0MDgxLCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.dTBiBLMS_KGgAi752QJRNUvZT1odYByenWEf3PN2sneVk0KSiUb6iHEwKemnYUuVHEVSo45VA-dw2uqK0I_KFg
+Content-Type: application/json
+
+{
+  "no": "2021010001",
+  "phone": "01055558888"
+}
+
+###
+# 교직원 정보 수정
+PUT http://localhost:3001/v1/user/staff/60403af7a9ee0d2eb4a21176
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwNjhjNzc3YWRiMzJmYjgzOWM3MzciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA2OGM3NzdhZGIzMmZiODM5YzczOCIsImlhdCI6MTYxNDgzNDExNSwiZXhwIjoxNjE0ODM0NzE1LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.IAlEk4_7d9BI5Wbbw48zVOi1sMgYCMdou3MJg9BxpD-Ri1DmEpi30FDoDm2HvzgzJg--bRTVeVWhlG4eXZ3iJQ
+Content-Type: application/json
+
+{
+  "name": "임희동",
+  "email": "lhd@cbnu.ac.kr"
+}
+
+###
+# 운영자 정보 수정
+PUT http://localhost:3001/v1/user/operator/603ece6960cbe8380c74c323
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwNjhjNzc3YWRiMzJmYjgzOWM3MzciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA2OGM3NzdhZGIzMmZiODM5YzczOCIsImlhdCI6MTYxNDgzNDExNSwiZXhwIjoxNjE0ODM0NzE1LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.IAlEk4_7d9BI5Wbbw48zVOi1sMgYCMdou3MJg9BxpD-Ri1DmEpi30FDoDm2HvzgzJg--bRTVeVWhlG4eXZ3iJQ
+Content-Type: application/json
+
+{
+  "department": "SW중심대학사업단",
+  "center": "전공교육센터"
+}
+
+###
+# permission 설정
+PATCH http://localhost:3001/v1/user/603ece6960cbe8380c74c323/permissions
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwNjhjNzc3YWRiMzJmYjgzOWM3MzciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA2OGM3NzdhZGIzMmZiODM5YzczOCIsImlhdCI6MTYxNDgzNDExNSwiZXhwIjoxNjE0ODM0NzE1LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.IAlEk4_7d9BI5Wbbw48zVOi1sMgYCMdou3MJg9BxpD-Ri1DmEpi30FDoDm2HvzgzJg--bRTVeVWhlG4eXZ3iJQ
+Content-Type: application/json
+
+{
+  "permissions": ["student", "operator", "staff"]
+}
+
+###
+# 관리자 권한 추가
+PATCH http://localhost:3001/v1/user/603ece6960cbe8380c74c323/admin/add
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwNjhjNzc3YWRiMzJmYjgzOWM3MzciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA2OGM3NzdhZGIzMmZiODM5YzczOCIsImlhdCI6MTYxNDgzNDExNSwiZXhwIjoxNjE0ODM0NzE1LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.IAlEk4_7d9BI5Wbbw48zVOi1sMgYCMdou3MJg9BxpD-Ri1DmEpi30FDoDm2HvzgzJg--bRTVeVWhlG4eXZ3iJQ
+
+###
+# 관리자 권한 제거
+PATCH http://localhost:3001/v1/user/603ece6960cbe8380c74c323/admin/remove
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwNjhjNzc3YWRiMzJmYjgzOWM3MzciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA2OGM3NzdhZGIzMmZiODM5YzczOCIsImlhdCI6MTYxNDgzNDExNSwiZXhwIjoxNjE0ODM0NzE1LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.IAlEk4_7d9BI5Wbbw48zVOi1sMgYCMdou3MJg9BxpD-Ri1DmEpi30FDoDm2HvzgzJg--bRTVeVWhlG4eXZ3iJQ
+
+###
+# 운영자 권한 추가
+PATCH http://localhost:3001/v1/user/603ece6860cbe8380c74c31b/operator/add
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwNjhjNzc3YWRiMzJmYjgzOWM3MzciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA2OGM3NzdhZGIzMmZiODM5YzczOCIsImlhdCI6MTYxNDgzNDc1NCwiZXhwIjoxNjE0ODM1MzU0LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.F4kXjwwPG3C_eH81qpK7n3-O_pkbwAQem56ryBL1DExxrEO62cayTmrl96ztzI18UaftQvVEzf8YRxHXEJzbdw
+
+###
+# 운영자 권한 제거
+PATCH http://localhost:3001/v1/user/603ece6860cbe8380c74c31b/operator/remove
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwNjhjNzc3YWRiMzJmYjgzOWM3MzciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA2OGM3NzdhZGIzMmZiODM5YzczOCIsImlhdCI6MTYxNDgzNDc1NCwiZXhwIjoxNjE0ODM1MzU0LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.F4kXjwwPG3C_eH81qpK7n3-O_pkbwAQem56ryBL1DExxrEO62cayTmrl96ztzI18UaftQvVEzf8YRxHXEJzbdw
+
+###
+# 사용자 삭제
+DELETE http://localhost:3001/v1/user/60402ef1c3fd9a5a70dbead5
+x-Access-Token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQwNjhjNzc3YWRiMzJmYjgzOWM3MzciLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwiaW5mbyI6IjYwNDA2OGM3NzdhZGIzMmZiODM5YzczOCIsImlhdCI6MTYxNDgzNDc1NCwiZXhwIjoxNjE0ODM1MzU0LCJhdWQiOiJodHRwczovL3N3N3VwLmNibnUuYWMua3IiLCJpc3MiOiLstqnrtoHrjIDtlZnqtZAgU1fspJHsi6zrjIDtlZnsgqzsl4Xri6giLCJzdWIiOiJrbWFobkBjYm51LmFjLmtyIn0.F4kXjwwPG3C_eH81qpK7n3-O_pkbwAQem56ryBL1DExxrEO62cayTmrl96ztzI18UaftQvVEzf8YRxHXEJzbdw

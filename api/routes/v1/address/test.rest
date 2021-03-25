@@ -1,0 +1,7 @@
+###
+# 주소 검색
+GET http://localhost:3001/v1/address?q=충대로1
+
+###
+# 좌표 검색
+GET http://localhost:3001/v1/address/coords?admCd=4311210900&rnMgtSn=431123350731&udrtYn=0&buldMnnm=1&buldSlno=0

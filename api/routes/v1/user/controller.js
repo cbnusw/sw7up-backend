@@ -203,7 +203,7 @@ const addRole = role => async (req, res, next) => {
   }
 };
 
-const removeRole = role => async (req, res, next) => {
+const removeRole = (...roles) => async (req, res, next) => {
   const { id } = req.params;
 
   try {
@@ -213,11 +213,12 @@ const removeRole = role => async (req, res, next) => {
     const user = await User.findById(info.user);
     if (!user) return next(USER_NOT_FOUND);
 
-    const infoIdx = info.roles.indexOf(role);
-    const userIdx = user.roles.indexOf(role);
-
-    if (infoIdx !== -1) info.roles.splice(infoIdx, 1);
-    if (userIdx !== -1) user.roles.splice(userIdx, 1);
+    roles.forEach(role => {
+      const infoIdx = info.roles.indexOf(role);
+      const userIdx = user.roles.indexOf(role);
+      if (infoIdx !== -1) info.roles.splice(infoIdx, 1);
+      if (userIdx !== -1) user.roles.splice(userIdx, 1);
+    });
 
     await Promise.all([info.save(), user.save()]);
     res.json(createResponse(res));
@@ -303,7 +304,7 @@ exports.setPermissions = setPermissions;
 exports.addAdminRole = addRole('admin');
 exports.addOperatorRole = addRole('operator');
 exports.removeAdminRole = removeRole('admin');
-exports.removeOperatorRole = removeRole('operator');
+exports.removeOperatorRole = removeRole('admin', 'operator');
 exports.clear = clear;
 exports.removeUser = removeUser;
 exports.clearUser = clearUser;

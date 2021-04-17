@@ -9,18 +9,11 @@ const roles = [
   ...access
 ];
 
+// 운영자가 아닌 사람의 권한 설정
 const permissions = [
   'all',
-  'corruption report',
-  'gallery',
-  'newsletter',
-  'notice',
-  'operator',
-  'press release',
-  'resource',
+  'judge',
   'qna',
-  'staff',
-  'student',
 ];
 
 const centers = [

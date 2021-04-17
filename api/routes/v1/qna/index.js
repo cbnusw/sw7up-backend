@@ -17,6 +17,7 @@ router.put('/:id', authenticate, controller.updateQnA);
 router.put('/:id/reply/:replyId', authenticate, controller.updateReply);
 
 router.patch('/:id/confirm', ...hasPermission('qna'), controller.confirm);
+router.patch('/:id/remove', authenticate, controller.removeQnA);
 router.patch('/:id/reply/:replyId/remove', controller.removeReply);
 
 router.delete('/:id', ...hasPermission('qna'), controller.removeQnA);

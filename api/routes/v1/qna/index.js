@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/', controller.getQnAs);
 router.get('/:id', authenticate, controller.getQnA);
-router.get('/:id/simple', controller.getSimpleQnA);
+// router.get('/:id/simple', controller.getSimpleQnA);
 
 router.post('/', authenticate, controller.createQnA);
 router.post('/:id', authenticate, controller.getQnA);

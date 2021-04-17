@@ -45,19 +45,19 @@ const getQnA = async (req, res, next) => {
   }
 };
 
-const getSimpleQnA = async (req, res, next) => {
-  const { params: { id } } = req;
-
-  try {
-    const doc = await Qna.findById(id)
-      .select('title writer secret')
-      .populate({ path: 'writer', model: UserInfo });
-    if (!doc) return next(QNA_NOT_FOUND);
-    res.json(createResponse(res, doc));
-  } catch (e) {
-    next(e);
-  }
-};
+// const getSimpleQnA = async (req, res, next) => {
+//   const { params: { id } } = req;
+//
+//   try {
+//     const doc = await Qna.findById(id)
+//       .select('title writer secret')
+//       .populate({ path: 'writer', model: UserInfo });
+//     if (!doc) return next(QNA_NOT_FOUND);
+//     res.json(createResponse(res, doc));
+//   } catch (e) {
+//     next(e);
+//   }
+// };
 
 const createQnA = async (req, res, next) => {
   const { body, user } = req;
@@ -229,18 +229,6 @@ const removeReply = async (req, res, next) => {
   }
 };
 
-exports.getQnAs = getQnAs;
-exports.getQnA = getQnA;
-exports.getSimpleQnA = getSimpleQnA;
-exports.createQnA = createQnA;
-exports.addReply = addReply;
-exports.checkPassword = checkPassword;
-exports.updateQnA = updateQnA;
-exports.updateReply = updateReply;
-exports.confirm = confirm;
-exports.removeQnA = removeQnA;
-exports.removeReply = removeReply;
-
 function hasQnAPermission(qna, user, password) {
   const writerId = qna.writer ? qna.writer._id || qna.writer : null;
   if (hasPermission(user, 'qna')) return true;
@@ -261,3 +249,15 @@ function createQnAContent(qna, edit = false) {
 확인하고 싶은 경우 아래의 링크를 클릭하세요.</p>
 <a href="${WEB_APP_HOST}/community/e-help/detail/${qna._id}">답변 확인</a>`;
 }
+
+exports.getQnAs = getQnAs;
+exports.getQnA = getQnA;
+// exports.getSimpleQnA = getSimpleQnA;
+exports.createQnA = createQnA;
+exports.addReply = addReply;
+exports.checkPassword = checkPassword;
+exports.updateQnA = updateQnA;
+exports.updateReply = updateReply;
+exports.confirm = confirm;
+exports.removeQnA = removeQnA;
+exports.removeReply = removeReply;

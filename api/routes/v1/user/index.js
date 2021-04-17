@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { hasPermission, hasPermissions, isAdmin } = require('../../../../shared/middlewares/auth');
+const { hasPermission, hasSomePermissions, isAdmin } = require('../../../../shared/middlewares/auth');
 const controller = require('./controller');
 
 const router = Router();
@@ -23,8 +23,8 @@ router.put('/operator/:id', ...hasPermission('operator'), controller.updateOpera
 router.patch('/:id/permissions', ...isAdmin, controller.setPermissions);
 router.patch('/:id/admin/add', ...isAdmin, controller.addAdminRole);
 router.patch('/:id/admin/remove', ...isAdmin, controller.removeAdminRole);
-router.patch('/:id/operator/add', ...hasPermissions('student', 'staff', 'operator'), controller.addOperatorRole);
-router.patch('/:id/operator/remove', ...hasPermissions('student', 'staff', 'operator'), controller.removeOperatorRole);
+router.patch('/:id/operator/add', ...hasSomePermissions('student', 'staff', 'operator'), controller.addOperatorRole);
+router.patch('/:id/operator/remove', ...hasSomePermissions('student', 'staff', 'operator'), controller.removeOperatorRole);
 
 router.delete('/clear', ...isAdmin, controller.clear);
 router.delete('/:id', ...isAdmin, controller.removeUser);

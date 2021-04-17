@@ -3,7 +3,7 @@ const { Otp, RefreshToken, User, UserInfo } = require('../../shared/models/@auth
 const { createResponse } = require('../../shared/utils/response');
 const { updateFiles, removeFileByUrl } = require('../../shared/utils/file');
 const { sendMail } = require('../../shared/services/mail');
-const { hasRoles } = require('../../shared/utils/permission');
+const { hasSomeRoles } = require('../../shared/utils/permission');
 const {
   EMAIL_USED,
   FORBIDDEN,
@@ -118,7 +118,7 @@ const login = (...roles) => async (req, res, next) => {
   try {
     const exUser = await User.findOne({ no });
     if (!exUser) return next(USER_NOT_FOUND);
-    if (roles.length !== 0 && !hasRoles(exUser, ...roles)) return next(FORBIDDEN);
+    if (roles.length !== 0 && !hasSomeRoles(exUser, ...roles)) return next(FORBIDDEN);
     if (!exUser.authenticate(password)) return next(INVALID_PASSWORD);
 
     const [accessToken, refreshToken] = await Promise.all([

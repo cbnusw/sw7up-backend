@@ -1,18 +1,28 @@
-const hasRole = (user, role) => !user ? false : user.roles.indexOf(role) !== -1 || user.roles.indexOf('admin') !== -1;
-const hasRoles = (user, ...roles) => !user ? false : roles.length === 0 || !!roles.find(role => hasRole(user, role));
+const hasRole = (user, role) =>
+  !user ? false : user.roles.includes(role);
+
+const hasSomeRoles = (user, ...roles) =>
+  !user ? false : !!roles.some(role => user.roles.include(role));
+
+const hasEveryRoles = (user, ...roles) =>
+  !user ? false : !!roles.every(role => user.roles.includes(role));
 
 const hasPermission = (user, permission) => {
   if (!user) return false;
-  if (hasRole(user, 'admin')) return true;
-  if (!hasRole(user, 'operator')) return false;
+  if (hasSomeRoles(user, 'admin', 'operator')) return true;
   if (user.permissions.includes('all')) return true;
   return user.permissions.includes(permission);
 };
 
-const hasPermissions = (user, ...permissions) =>
-  !user ? false : !!permissions.find(permission => hasPermission(user, permission));
+const hasSomePermissions = (user, ...permissions) =>
+  !user ? false : permissions.some(permission => hasPermission(user, permission));
+
+const hasEveryPermissions = (user, ...permissions) =>
+  !user ? false : permissions.every(permission => hasPermission(user, permission));
 
 exports.hasRole = hasRole;
-exports.hasRoles = hasRoles;
+exports.hasSomeRoles = hasSomeRoles;
+exports.hasEveryRoles = hasEveryRoles;
 exports.hasPermission = hasPermission;
-exports.hasPermissions = hasPermissions;
+exports.hasSomePermissions = hasSomePermissions;
+exports.hasEveryPermissions = hasEveryPermissions;

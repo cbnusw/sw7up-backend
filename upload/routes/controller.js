@@ -1,7 +1,7 @@
 const { parse } = require('url');
 const { join, basename } = require('path');
 const { createResponse } = require('../../shared/utils/response');
-const { hasRoles } = require('../../shared/utils/permission');
+const { hasSomeRoles } = require('../../shared/utils/permission');
 const { File } = require('../../shared/models/@main');
 const { removeFileByUrl: _removeFileByUrl, removeFileById: _removeFileById } = require('../../shared/utils/file');
 const {
@@ -37,7 +37,7 @@ const download = async (req, res, next) => {
 
   const file = await File.findById(id);
   if (!file) return next(FILE_NOT_FOUND);
-  if (file.access.length > 0 && !hasRoles(req.user, ...file.access)) return next(FORBIDDEN);
+  if (file.access.length > 0 && !hasSomeRoles(req.user, ...file.access)) return next(FORBIDDEN);
   const filePath = join(ROOT_DIR, UPLOAD_DIR, basename(parse(file.url).pathname));
 
   res.download(filePath, file.filename);

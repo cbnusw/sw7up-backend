@@ -3,7 +3,7 @@ const { join } = require('path');
 const middleware = require('../shared/middlewares/common');
 const { notFound, errorHandler } = require('../shared/errors/handlers');
 const { authenticate } = require('../shared/middlewares/auth');
-const { hasRoles } = require('../shared/utils/permission');
+const { hasSomeRoles } = require('../shared/utils/permission');
 const { error } = require('./utils/logger');
 const { File } = require('../shared/models/@main');
 const router = require('./routes');
@@ -29,7 +29,7 @@ middleware(app, [
       const url = `${HOST}${req.originalUrl}`;
       const file = await File.findOne({ url });
       if (!file) return next();
-      if (file.access.length !== 0 && !hasRoles(user, ...file.access)) return next(FORBIDDEN);
+      if (file.access.length !== 0 && !hasSomeRoles(user, ...file.access)) return next(FORBIDDEN);
       next();
     },
     express.static(join(ROOT_DIR, UPLOAD_DIR))

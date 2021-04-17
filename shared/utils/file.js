@@ -7,7 +7,7 @@ const { v4 } = require('uuid');
 const { sync } = require('mkdirp');
 const { ROOT_DIR, UPLOAD_DIR } = require('../env');
 const { File } = require('../models/@main');
-const { hasRoles } = require('../utils/permission');
+const { hasSomeRoles } = require('../utils/permission');
 const { difference } = require('./functions')
 const {
   FORBIDDEN,
@@ -52,7 +52,7 @@ const removeFileByUrl = async (req, url, baseDir = UPLOAD_DIR) => {
   if (!url) return;
   const file = await File.findOne({ url });
   if (!file) return;
-  if (!hasRoles(user, 'admin', 'operator') && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
+  if (!hasSomeRoles(user, 'admin', 'operator') && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
   const filePath = join(ROOT_DIR, baseDir, getBasename(url));
   await Promise.all([file.deleteOne(), promises.unlink(filePath)]);
 };
@@ -63,7 +63,7 @@ const removeFileById = async (req, id, baseDir = UPLOAD_DIR) => {
   if (!id) return;
   const file = await File.findById(id);
   if (!file) return;
-  if (!hasRoles(user, 'admin', 'operator') && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
+  if (!hasSomeRoles(user, 'admin', 'operator') && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
   const filePath = join(ROOT_DIR, baseDir, getBasename(file.url));
   await Promise.all([file.deleteOne(), promises.unlink(filePath)]);
 };
@@ -76,7 +76,7 @@ const updateFiles = async (req, ref, refModel, urls) => {
   const { user } = req;
   const files = await File.find({ ref, refModel });
 
-  if (!hasRoles(user, 'admin', 'staff') && files.some(file => String(user.info) !== String(file.uploader)))
+  if (!hasSomeRoles(user, 'admin', 'staff') && files.some(file => String(user.info) !== String(file.uploader)))
     throw FORBIDDEN;
 
   const inDB = files.map(file => file.url);

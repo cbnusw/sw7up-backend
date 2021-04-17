@@ -3,9 +3,11 @@ const { AUTH_APP_HOST } = require('../env');
 const { FORBIDDEN } = require('../errors');
 const {
   hasRole: _hasRole,
-  hasRoles: _hasRoles,
+  hasEveryRoles: _hasEveryRoles,
+  hasSomeRoles: _hasSomeRoles,
   hasPermission: _hasPermission,
-  hasPermissions: _hasPermissions
+  hasEveryPermissions: _hasEveryPermissions,
+  hasSomePermissions: _hasSomePermissions,
 } = require('../utils/permission');
 
 const authenticate = async (req, res, next) => {
@@ -45,9 +47,14 @@ const hasRole = role => [
   (req, res, next) => _hasRole(req.user, role) ? next() : next(FORBIDDEN)
 ];
 
-const hasRoles = (...roles) => [
+const hasSomeRoles = (...roles) => [
   isAuthenticated,
-  (req, res, next) => _hasRoles(req.user, ...roles) ? next() : next(FORBIDDEN)
+  (req, res, next) => _hasSomeRoles(req.user, ...roles) ? next() : next(FORBIDDEN)
+];
+
+const hasEveryRoles = (...roles) => [
+  isAuthenticated,
+  (req, res, next) => _hasEveryRoles(req.user, ...roles) ? next() : next(FORBIDDEN)
 ];
 
 const hasPermission = permission => [
@@ -55,16 +62,25 @@ const hasPermission = permission => [
   (req, res, next) => _hasPermission(req.user, permission) ? next() : next(FORBIDDEN)
 ];
 
-const hasPermissions = (...permissions) => [
+const hasSomePermissions = (...permissions) => [
   isAuthenticated,
-  (req, res, next) => _hasPermissions(req.user, ...permissions) ? next() : next(FORBIDDEN)
+  (req, res, next) => _hasSomePermissions(req.user, ...permissions) ? next() : next(FORBIDDEN)
+];
+
+const hasEveryPermissions = (...permissions) => [
+  isAuthenticated,
+  (req, res, next) => _hasEveryPermissions(req.user, ...permissions) ? next() : next(FORBIDDEN)
 ];
 
 exports.authenticate = authenticate;
 exports.isAuthenticated = isAuthenticated;
 exports.isAdmin = hasRole('admin');
-exports.isOperator = hasRoles('admin', 'operator');
+exports.isOperator = hasSomeRoles('admin', 'operator');
 exports.isStaff = hasRole('staff');
 exports.isStudent = hasRole('student');
+exports.hasRole = hasRole;
+exports.hasSomeRoles = hasSomeRoles;
+exports.hasEveryRoles = hasEveryRoles;
 exports.hasPermission = hasPermission;
-exports.hasPermissions = hasPermissions;
+exports.hasSomePermissions = hasSomePermissions;
+exports.hasEveryPermissions = hasEveryPermissions;

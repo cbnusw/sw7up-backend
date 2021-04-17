@@ -42,7 +42,9 @@ const getUser = role => async (req, res, next) => {
 };
 
 const registerUser = (...roles) => async (req, res, next) => {
-  const { no, password, permissions = [], info } = req.body;
+
+  const { no, permissions = [], info } = req.body;
+  const password = generatePassword();
 
   if (!info.name) return next(USER_NAME_REQUIRED);
   if (!info.email) return next(USER_EMAIL_REQUIRED);
@@ -67,6 +69,14 @@ const registerUser = (...roles) => async (req, res, next) => {
     const infoInstance = await UserInfo.create({ no, ...info, roles, user: user._id });
     user.info = infoInstance._id;
     await user.save();
+
+    const mailBody = `<p><a href="https://sw7up.cbnu.ac.kr">충북대학교 SW중심대학사업단</a> 회원으로 등록되었습니다.</p>
+<p>아래의 계정으로 로그인해주세요.</p>
+<p>이메일: ${email}</p>
+<p>임시 비밀번호: ${password}</p>
+<p style="color: red; font-size: 0.8em">* 로그인 후 비밀번호를 변경해주세요.</p>`
+
+    await sendMail('회원 등록 안내');
     if (info.image) await updateFiles(req, infoInstance._id, 'UserInfo', [info.image]);
     res.json(createResponse(res, infoInstance));
   } catch (e) {
@@ -75,17 +85,6 @@ const registerUser = (...roles) => async (req, res, next) => {
 };
 
 const restore = async (req, res, next) => {
-  const generatePassword = () => {
-    const strings = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*_+-='.split('');
-    const password = [];
-    let passwordLength = 10;
-    while (passwordLength > 0) {
-      password.push(strings[Math.floor(Math.random() * strings.length)]);
-      passwordLength--;
-    }
-    return password.join('');
-  };
-
   const { params: { id } } = req;
 
   try {
@@ -102,7 +101,7 @@ const restore = async (req, res, next) => {
     const mailBody = `<p>계정을 복구하였습니다. 다음 계정으로 로그인해주세요.</p>
 <p>이메일: ${email}</p>
 <p>임시 비밀번호: ${password}</p>
-<p style="color: red; font-size: 0.8em">* 로그인 후 비밀번호를 변경해주세요.</p>`
+<p style="color: red; font-size: 0.8em">* 로그인 후 비밀번호를 변경해주세요.</p>`;
 
     await Promise.all([info.save(), sendMail('계정 복구', mailBody, email)]);
     res.json(createResponse(res));
@@ -274,6 +273,18 @@ const clearUser = async (req, res, next) => {
     next(e);
   }
 };
+
+function generatePassword() {
+  const strings = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*_+-='.split('');
+  const password = [];
+  let passwordLength = 10;
+  while (passwordLength > 0) {
+    password.push(strings[Math.floor(Math.random() * strings.length)]);
+    passwordLength--;
+  }
+  return password.join('');
+}
+
 
 exports.getStudents = getUsers('student');
 exports.getStaffs = getUsers('staff');

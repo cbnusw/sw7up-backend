@@ -1,7 +1,7 @@
 const { cloneDeep } = require('lodash');
 const { Notice, UserInfo } = require('../../../../shared/models');
 const { createResponse } = require('../../../../shared/utils/response');
-const { hasRoles } = require('../../../../shared/utils/permission');
+const { hasSomeRoles } = require('../../../../shared/utils/permission');
 const { FORBIDDEN, NOTICE_NOT_FOUND } = require('../../../../shared/errors');
 const { findImageUrlsFromHtml, removeFilesByUrls, updateFiles } = require('../../../../shared/utils/file');
 
@@ -24,9 +24,9 @@ const getNotice = async (req, res, next) => {
       .populate('attachments');
 
     if (!doc) return next(NOTICE_NOT_FOUND);
-    if (doc.access.length > 0 && !hasRoles(user, ...doc.access)) return next(FORBIDDEN);
+    if (doc.access.length > 0 && !hasSomeRoles(user, ...doc.access)) return next(FORBIDDEN);
 
-    if (!user || !hasRoles(user, 'admin', 'operator')) {
+    if (!user || !hasSomeRoles(user, 'admin', 'operator')) {
       doc.hits++;
       doc.save();
     }

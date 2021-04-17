@@ -1,6 +1,6 @@
 const { Gallery, UserInfo } = require('../../../../shared/models');
 const { createResponse } = require('../../../../shared/utils/response');
-const { hasRoles } = require('../../../../shared/utils/permission');
+const { hasSomeRoles } = require('../../../../shared/utils/permission');
 const { removeFilesByUrls, updateFiles } = require('../../../../shared/utils/file');
 const {
   GALLERY_NOT_FOUND,
@@ -23,7 +23,7 @@ const getGallery = async (req, res, next) => {
     const doc = await Gallery.findById(id).populate({ path: 'writer', model: UserInfo });
     if (!doc) return next(GALLERY_NOT_FOUND);
 
-    if (!user || !hasRoles(user, 'admin', 'operator')) {
+    if (!user || !hasSomeRoles(user, 'admin', 'operator')) {
       doc.hits++;
       doc.save();
     }

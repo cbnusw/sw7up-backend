@@ -1,7 +1,7 @@
 const { join } = require('path');
 const cheerio = require('cheerio');
 const { promises, existsSync } = require('fs');
-const { hasRoles } = require('../../../../shared/utils/permission');
+const { hasSomeRoles } = require('../../../../shared/utils/permission');
 const { createResponse } = require('../../../../shared/utils/response');
 const { Newsletter, UserInfo } = require('../../../../shared/models');
 const {
@@ -31,7 +31,7 @@ const getNewsletter = async (req, res, next) => {
 
   try {
     const doc = await Newsletter.findById(id).populate({ path: 'writer', model: UserInfo });
-    if (!user && !hasRoles(user, 'admin', 'operator')) {
+    if (!user && !hasSomeRoles(user, 'admin', 'operator')) {
       doc.hits++;
       doc.save();
     }

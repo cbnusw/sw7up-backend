@@ -1,9 +1,11 @@
 const { verifyAccessToken } = require('../utils/jwt');
 const {
   hasRole: _hasRole,
-  hasRoles: _hasRoles,
+  hasEveryRoles: _hasEveryRoles,
+  hasSomeRoles: _hasSomeRoles,
   hasPermission: _hasPermission,
-  hasPermissions: _hasPermissions
+  hasEveryPermissions: _hasEveryPermissions,
+  hasSomePermissions: _hasSomePermissions
 } = require('../../shared/utils/permission');
 const {
   FORBIDDEN,
@@ -29,9 +31,14 @@ const hasRole = role => [
   (req, res, next) => _hasRole(req.user, role) ? next() : next(FORBIDDEN)
 ];
 
-const hasRoles = (...roles) => [
+const hasEveryRoles = (...roles) => [
   isAuthenticated,
-  (req, res, next) => _hasRoles(req.user, ...roles) ? next() : next(FORBIDDEN)
+  (req, res, next) => _hasEveryRoles(req.user, ...roles) ? next() : next(FORBIDDEN)
+];
+
+const hasSomeRoles = (...roles) => [
+  isAuthenticated,
+  (req, res, next) => _hasSomeRoles(req.user, ...roles) ? next() : next(FORBIDDEN)
 ];
 
 const hasPermission = permission => [
@@ -39,14 +46,23 @@ const hasPermission = permission => [
   (req, res, next) => _hasPermission(req.user, permission) ? next() : next(FORBIDDEN)
 ];
 
-const hasPermissions = (...permissions) => [
+const hasEveryPermissions = (...permissions) => [
   isAuthenticated,
-  (req, res, next) => _hasPermissions(req.user, ...permissions) ? next() : next(FORBIDDEN)
+  (req, res, next) => _hasEveryPermissions(req.user, ...permissions) ? next() : next(FORBIDDEN)
+];
+
+const hasSomePermissions = (...permissions) => [
+  isAuthenticated,
+  (req, res, next) => _hasSomePermissions(req.user, ...permissions) ? next() : next(FORBIDDEN)
 ];
 
 exports.isAuthenticated = isAuthenticated;
 exports.isAdmin = hasRole('admin');
-exports.isOperator = hasRoles('admin', 'operator');
+exports.isOperator = hasSomeRoles('admin', 'operator');
 exports.isStudent = hasRole('student');
+exports.hasRole = hasRole;
+exports.hasEveryRoles = hasEveryRoles;
+exports.hasSomeRoles = hasSomeRoles;
 exports.hasPermission = hasPermission;
-exports.hasPermissions = hasPermissions;
+exports.hasEveryPermissions = hasEveryPermissions;
+exports.hasSomePermissions = hasSomePermissions;

@@ -1,6 +1,6 @@
 const { PressRelease, UserInfo } = require('../../../../shared/models');
 const { createResponse } = require('../../../../shared/utils/response');
-const { hasRoles } = require('../../../../shared/utils/permission');
+const { hasSomeRoles } = require('../../../../shared/utils/permission');
 const { findImageUrlsFromHtml, removeFilesByUrls, updateFiles } = require('../../../../shared/utils/file');
 const {
   PRESS_RELEASE_NOT_FOUND
@@ -22,7 +22,7 @@ const getPressRelease = async (req, res, next) => {
   try {
     const doc = await PressRelease.findById(id).populate({ path: 'writer', model: UserInfo });
     if (!doc) return next(PRESS_RELEASE_NOT_FOUND);
-    if (!user || !hasRoles(user, 'admin', 'operator')) {
+    if (!user || !hasSomeRoles(user, 'admin', 'operator')) {
       doc.hits++;
       doc.save();
     }

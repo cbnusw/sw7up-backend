@@ -17,7 +17,7 @@ const permissions = [
 ];
 
 const centers = [
-  '사업팀',
+  '사업지원팀',
   'SW전공교육센터',
   'SW기초교육센터',
   'SW융합교육센터',

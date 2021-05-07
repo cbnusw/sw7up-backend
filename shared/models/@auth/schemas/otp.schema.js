@@ -27,8 +27,4 @@ schema.statics.getOtp = async function (user) {
   return otp;
 };
 
-schema.statics.findByUserInfoId = function (user) {
-  return this.findOne({ user });
-};
-
 module.exports = schema;

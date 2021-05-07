@@ -1,3 +1,4 @@
+const asyncHandler = require('express-async-handler');
 const { CorruptionReport, UserInfo } = require('../../../../shared/models');
 const { createResponse } = require('../../../../shared/utils/response');
 const { hasPermission } = require('../../../../shared/utils/permission');
@@ -8,138 +9,117 @@ const {
   REPLY_NOT_FOUND,
 } = require('../../../../shared/errors');
 
-const getCorruptionReports = async (req, res, next) => {
+const getCorruptionReports = asyncHandler(async (req, res, next) => {
   const { query, user } = req;
   const condition = {};
   if (!hasPermission(user, 'corruption report')) condition.writer = user.info;
 
-  try {
-    const documents = await CorruptionReport.search(query, condition, [{ path: 'writer', model: UserInfo }]);
-    res.json(createResponse(res, documents));
-  } catch (e) {
-    next(e);
-  }
-};
+  const documents = await CorruptionReport.search(query, condition, [{ path: 'writer', model: UserInfo }]);
+  res.json(createResponse(res, documents));
+});
 
-const getCorruptionReport = async (req, res, next) => {
+const getCorruptionReport = asyncHandler(async (req, res, next) => {
   const { params: { id }, user } = req;
+  const doc = await CorruptionReport.findById(id)
+    .populate({ path: 'writer', model: UserInfo })
+    .populate({ path: 'replies.writer', model: UserInfo })
+    .populate({ path: 'replies.replies.writer', model: UserInfo });
 
-  try {
-    const doc = await CorruptionReport.findById(id)
-      .populate({ path: 'writer', model: UserInfo })
-      .populate({ path: 'replies.writer', model: UserInfo })
-      .populate({ path: 'replies.replies.writer', model: UserInfo });
+  if (!doc) return next(CORRUPTION_REPORT_NOT_FOUND);
+  if (!hasPermission(user, 'corruption report') && String(doc.writer._id) !== String(user.info))
+    return next(FORBIDDEN);
 
-    if (!doc) return next(CORRUPTION_REPORT_NOT_FOUND);
-    if (!hasPermission(user, 'corruption report') && String(doc.writer._id) !== String(user.info))
-      return next(FORBIDDEN);
+  res.json(createResponse(res, doc));
+});
 
-    res.json(createResponse(res, doc));
-  } catch (e) {
-    next(e);
-  }
-};
-
-const createCorruptionReport = async (req, res, next) => {
+const createCorruptionReport = asyncHandler(async (req, res, next) => {
   const { body, user } = req;
   body.writer = user.info;
 
-  try {
-    const urls = findImageUrlsFromHtml(body.content);
-    const doc = await CorruptionReport.create(body);
-    await updateFiles(req, doc._id, 'CorruptionReport', urls);
-    res.json(createResponse(res, doc));
-  } catch (e) {
-    next(e);
-  }
-};
+  const urls = findImageUrlsFromHtml(body.content);
+  const doc = await CorruptionReport.create(body);
+  await updateFiles(req, doc._id, 'CorruptionReport', urls);
+  res.json(createResponse(res, doc));
+});
 
-const addReply = async (req, res, next) => {
+const addReply = asyncHandler(async (req, res, next) => {
   const { params: { id }, body, user } = req;
   body.writer = user.info;
 
-  try {
-    const doc = await CorruptionReport.findById(id);
-    if (!doc) return next(CORRUPTION_REPORT_NOT_FOUND);
-    if (!hasPermission(user, 'corruption report') && String(doc.writer) !== user.info) return next(FORBIDDEN);
+  const doc = await CorruptionReport.findById(id);
+  if (!doc) return next(CORRUPTION_REPORT_NOT_FOUND);
+  if (!hasPermission(user, 'corruption report') && String(doc.writer) !== user.info) return next(FORBIDDEN);
 
-    doc.replies = [...doc.replies, body];
-    await doc.save();
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  doc.replies = [...doc.replies, body];
+  await doc.save();
+  res.json(createResponse(res));
+});
 
-const updateCorruptionReport = async (req, res, next) => {
+const updateCorruptionReport = asyncHandler(async (req, res, next) => {
   const { params: { id }, body: $set, user } = req;
+  const doc = await CorruptionReport.findById(id);
 
-  try {
-    const doc = await CorruptionReport.findById(id);
-    if (String(doc.writer) !== String(user.info)) return next(FORBIDDEN);
-    const urls = findImageUrlsFromHtml($set.content);
-    await Promise.all([
-      doc.updateOne({ $set }),
-      updateFiles(req, doc._id, 'CorruptionReport', urls)
-    ]);
+  if (String(doc.writer) !== String(user.info)) return next(FORBIDDEN);
 
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  const urls = findImageUrlsFromHtml($set.content);
 
-const updateReply = async (req, res, next) => {
+  await Promise.all([
+    doc.updateOne({ $set }),
+    updateFiles(req, doc._id, 'CorruptionReport', urls)
+  ]);
+
+  res.json(createResponse(res));
+});
+
+const updateReply = asyncHandler(async (req, res, next) => {
   const { params: { id, replyId }, body: { content }, user } = req;
+  const doc = await CorruptionReport.findById(id);
 
-  try {
-    const doc = await CorruptionReport.findById(id);
-    if (!doc) return next(CORRUPTION_REPORT_NOT_FOUND);
-    if (String(doc.user) !== user.info && hasPermission(user, 'corruption report')) return next(FORBIDDEN);
-    const reply = doc.replies.find(r => String(r._id) === String(replyId));
-    if (!reply) return next(REPLY_NOT_FOUND);
-    if (String(reply.writer) !== String(user.info)) return next(FORBIDDEN);
-    reply.content = content;
-    await doc.save();
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  if (!doc) return next(CORRUPTION_REPORT_NOT_FOUND);
+  if (String(doc.user) !== user.info && hasPermission(user, 'corruption report')) return next(FORBIDDEN);
 
-const removeCorruptionReport = async (req, res, next) => {
+  const reply = doc.replies.find(r => String(r._id) === String(replyId));
+
+  if (!reply) return next(REPLY_NOT_FOUND);
+  if (String(reply.writer) !== String(user.info)) return next(FORBIDDEN);
+
+  reply.content = content;
+  await doc.save();
+  res.json(createResponse(res));
+});
+
+const removeCorruptionReport = asyncHandler(async (req, res, next) => {
   const { params: { id }, user } = req;
+  const doc = await CorruptionReport.findById(id);
 
-  try {
-    const doc = await CorruptionReport.findById(id);
-    if (!doc) return next(CORRUPTION_REPORT_NOT_FOUND);
-    if (!hasPermission(user, 'corruption report') && String(doc.writer) !== String(user.info))
-      return next(FORBIDDEN);
-    const urls = findImageUrlsFromHtml(doc.content);
-    await Promise.all([doc.deleteOne(), removeFilesByUrls(req, urls)]);
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  if (!doc) return next(CORRUPTION_REPORT_NOT_FOUND);
+  if (!hasPermission(user, 'corruption report') && String(doc.writer) !== String(user.info))
+    return next(FORBIDDEN);
 
-const removeReply = async (req, res, next) => {
+  const urls = findImageUrlsFromHtml(doc.content);
+
+  await Promise.all([doc.deleteOne(), removeFilesByUrls(req, urls)]);
+  res.json(createResponse(res));
+});
+
+const removeReply = asyncHandler(async (req, res, next) => {
   const { params: { id, replyId }, user } = req;
+  const doc = await CorruptionReport.findById(id);
 
-  try {
-    const doc = await CorruptionReport.findById(id);
-    if (!doc) return next(CORRUPTION_REPORT_NOT_FOUND);
-    const idx = doc.replies.findIndex(r => String(r._id) === String(replyId));
-    if (idx === -1) return next(REPLY_NOT_FOUND);
-    const reply = doc.replies[idx];
-    if (String(reply.writer) !== String(user.info)) return next(FORBIDDEN);
-    doc.replies.splice(idx, 1);
-    await doc.save();
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  if (!doc) return next(CORRUPTION_REPORT_NOT_FOUND);
+
+  const idx = doc.replies.findIndex(r => String(r._id) === String(replyId));
+
+  if (idx === -1) return next(REPLY_NOT_FOUND);
+
+  const reply = doc.replies[idx];
+
+  if (String(reply.writer) !== String(user.info)) return next(FORBIDDEN);
+
+  doc.replies.splice(idx, 1);
+  await doc.save();
+  res.json(createResponse(res));
+});
 
 exports.getCorruptionReports = getCorruptionReports;
 exports.getCorruptionReport = getCorruptionReport;

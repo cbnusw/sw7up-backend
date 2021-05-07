@@ -1,3 +1,4 @@
+const asyncHandler = require('express-async-handler');
 const { User, UserInfo } = require('../../../../shared/models');
 const { createResponse } = require('../../../../shared/utils/response');
 const { hasRole } = require('../../../../shared/utils/permission');
@@ -19,30 +20,22 @@ const {
   USER_PHONE_REQUIRED,
 } = require('../../../../shared/errors');
 
-const getUsers = role => async (req, res, next) => {
-  try {
-    const data = await UserInfo.search(req.query, { roles: role });
-    res.json(createResponse(res, data));
-  } catch (e) {
-    next(e);
-  }
-};
+const getUsers = role => asyncHandler(async (req, res, next) => {
+  const data = await UserInfo.search(req.query, { role });
+  res.json(createResponse(res, data));
+});
 
-const getUser = role => async (req, res, next) => {
+const getUser = role => asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  try {
-    const data = await UserInfo.findById(id).populate({ path: 'user', select: 'permissions' });
-    if (!data) return next(USER_INFO_NOT_FOUND);
-    if (!data.roles.includes(role)) return next(FORBIDDEN);
+  const data = await UserInfo.findById(id).populate({ path: 'user', select: 'permissions' });
 
-    res.json(createResponse(res, data));
-  } catch (e) {
-    next(e);
-  }
-};
+  if (!data) return next(USER_INFO_NOT_FOUND);
+  if (data.role !== role) return next(FORBIDDEN);
 
-const registerUser = (...roles) => async (req, res, next) => {
+  res.json(createResponse(res, data));
+});
 
+const registerUser = (...role) => asyncHandler(async (req, res, next) => {
   const { no, permissions = [], info } = req.body;
   const password = generatePassword();
 
@@ -52,228 +45,178 @@ const registerUser = (...roles) => async (req, res, next) => {
   if (!info.department) return next(USER_DEPARTMENT_REQUIRED);
 
   const { email, phone } = info;
+  const [exUser, exNo, exEmail, exPhone] = await Promise.all([
+    User.findOne({ no }),
+    UserInfo.findOne({ no }),
+    UserInfo.findOne({ email }),
+    UserInfo.findOne({ phone }),
+  ]);
 
-  try {
-    const [exUser, exNo, exEmail, exPhone] = await Promise.all([
-      User.findOne({ no }),
-      UserInfo.findOne({ no }),
-      UserInfo.findOne({ email }),
-      UserInfo.findOne({ phone }),
-    ]);
+  if (exUser || exNo) return next(REG_NUMBER_USED);
+  if (exEmail) return next(EMAIL_USED);
+  if (exPhone) return next(PHONE_NUMBER_USED);
 
-    if (exUser || exNo) return next(REG_NUMBER_USED);
-    if (exEmail) return next(EMAIL_USED);
-    if (exPhone) return next(PHONE_NUMBER_USED);
+  const user = await User.create({ no, password, role, permissions });
+  const infoInstance = await UserInfo.create({ no, ...info, role, user: user._id });
 
-    const user = await User.create({ no, password, roles, permissions });
-    const infoInstance = await UserInfo.create({ no, ...info, roles, user: user._id });
-    user.info = infoInstance._id;
-    await user.save();
+  user.info = infoInstance._id;
+  await user.save();
 
-    const mailBody = `<p><a href="https://sw7up.cbnu.ac.kr">충북대학교 SW중심대학사업단</a> 회원으로 등록되었습니다.</p>
+  const mailBody = `<p><a href="https://sw7up.cbnu.ac.kr">충북대학교 SW중심대학사업단</a> 회원으로 등록되었습니다.</p>
 <p>아래의 계정으로 로그인해주세요.</p>
 <p>이메일: ${email}</p>
 <p>임시 비밀번호: ${password}</p>
 <p style="color: red; font-size: 0.8em">* 로그인 후 비밀번호를 변경해주세요.</p>`
 
-    await sendMail('회원 등록 안내');
-    if (info.image) await updateFiles(req, infoInstance._id, 'UserInfo', [info.image]);
-    res.json(createResponse(res, infoInstance));
-  } catch (e) {
-    next(e);
-  }
-};
+  await sendMail('회원 등록 안내');
 
-const restore = async (req, res, next) => {
+  if (info.image) await updateFiles(req, infoInstance._id, 'UserInfo', [info.image]);
+
+  res.json(createResponse(res, infoInstance));
+});
+
+const restore = asyncHandler(async (req, res, next) => {
   const { params: { id } } = req;
+  const info = await UserInfo.findById(id);
 
-  try {
-    const info = await UserInfo.findById(id);
-    if (!info) return next(USER_INFO_NOT_FOUND);
-    if (info.user) return next(USER_NOT_DELETED);
+  if (!info) return next(USER_INFO_NOT_FOUND);
+  if (info.user) return next(USER_NOT_DELETED);
 
-    const { no, roles } = info;
-    const password = generatePassword();
+  const { no, role, email } = info;
+  const password = generatePassword();
+  const user = await User.create({ no, password, role, permissions: [], info: info._id });
 
-    const user = await User.create({ no, password, roles, permissions: [], info: info._id });
-    info.user = user._id;
+  info.user = user._id;
 
-    const mailBody = `<p>계정을 복구하였습니다. 다음 계정으로 로그인해주세요.</p>
+  const mailBody = `<p>계정을 복구하였습니다. 다음 계정으로 로그인해주세요.</p>
 <p>이메일: ${email}</p>
 <p>임시 비밀번호: ${password}</p>
 <p style="color: red; font-size: 0.8em">* 로그인 후 비밀번호를 변경해주세요.</p>`;
 
-    await Promise.all([info.save(), sendMail('계정 복구', mailBody, email)]);
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  await Promise.all([info.save(), sendMail('계정 복구', mailBody, email)]);
+
+  res.json(createResponse(res));
+});
 
 
-const updateUser = role => async (req, res, next) => {
+const updateUser = role => asyncHandler(async (req, res, next) => {
   const { params: { id }, body: $set } = req.params;
 
   // 변경 불가능한 속성 제거
-  delete $set.roles;
+  delete $set.role;
   delete $set.user;
 
-  try {
-    const info = await UserInfo.findById(id);
-    if (!info) return next(USER_INFO_NOT_FOUND);
+  const info = await UserInfo.findById(id);
+  if (!info) return next(USER_INFO_NOT_FOUND);
 
-    const user = await User.findById(info.user);
-    if (!user) return next(USER_NOT_FOUND);
+  const user = await User.findById(info.user);
+  if (!user) return next(USER_NOT_FOUND);
 
-    if (!hasRole(info, role)) return next(FORBIDDEN);
+  if (!hasRole(info, role)) return next(FORBIDDEN);
 
-    const { no, email, phone, image } = $set;
+  const { no, email, phone, image } = $set;
 
-    if (email && email.toLowerCase() !== info.email) {
-      const exEmail = await UserInfo.findOne({ email });
-      if (exEmail) return next(EMAIL_USED);
-    }
-
-    if (phone && phone !== info.phone) {
-      const exPhone = await UserInfo.findOne({ phone });
-      if (exPhone) return next(PHONE_NUMBER_USED);
-    }
-
-    if (no && no !== info.no) {
-      const [exUser, exNo] = await Promise.all([
-        User.findOne({ no }),
-        UserInfo.findOne({ no })
-      ]);
-      if (exUser || exNo) return next(REG_NUMBER_USED);
-
-      user.no = no;
-      await user.save();
-    }
-
-    if (image && image !== info.image) {
-      await updateFiles(req, info._id, 'UserInfo', [image]);
-    } else if (!image) {
-      await removeFileByUrl(req, image);
-    }
-
-    await info.updateOne({ $set });
-
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
+  if (email && email.toLowerCase() !== info.email) {
+    const exEmail = await UserInfo.findOne({ email });
+    if (exEmail) return next(EMAIL_USED);
   }
-};
 
-const setPermissions = async (req, res, next) => {
-  const { params: { id }, body: { permissions } } = req;
+  if (phone && phone !== info.phone) {
+    const exPhone = await UserInfo.findOne({ phone });
+    if (exPhone) return next(PHONE_NUMBER_USED);
+  }
 
-  try {
-    const info = await UserInfo.findById(id);
-    if (!info) return next(USER_INFO_NOT_FOUND);
+  if (no && no !== info.no) {
+    const [exUser, exNo] = await Promise.all([
+      User.findOne({ no }),
+      UserInfo.findOne({ no })
+    ]);
+    if (exUser || exNo) return next(REG_NUMBER_USED);
 
-    const user = await User.findById(info.user);
-    if (!user) return next(USER_NOT_FOUND);
-
-    user.permissions = permissions;
+    user.no = no;
     await user.save();
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
   }
 
-}
+  if (image && image !== info.image) {
+    await updateFiles(req, info._id, 'UserInfo', [image]);
+  } else if (!image) {
+    await removeFileByUrl(req, image);
+  }
 
-const addRole = role => async (req, res, next) => {
+  await info.updateOne({ $set });
+
+  res.json(createResponse(res));
+});
+
+const setPermissions = asyncHandler(async (req, res, next) => {
+  const { params: { id }, body: { permissions } } = req;
+  const info = await UserInfo.findById(id);
+
+  if (!info) return next(USER_INFO_NOT_FOUND);
+
+  const user = await User.findById(info.user);
+  if (!user) return next(USER_NOT_FOUND);
+
+  user.permissions = permissions;
+  await user.save();
+  res.json(createResponse(res));
+});
+
+const changeRole = role => asyncHandler(async (req, res, next) => {
   const { id } = req.params;
+  const info = await UserInfo.findById(id);
 
-  try {
-    const info = await UserInfo.findById(id);
-    if (!info) return next(USER_INFO_NOT_FOUND);
+  if (!info) return next(USER_INFO_NOT_FOUND);
 
-    const user = await User.findById(info.user);
-    if (!user) return next(USER_NOT_FOUND);
+  const user = await User.findById(info.user);
 
-    if (!info.roles.includes(role)) info.roles.push(role);
-    if (!user.roles.includes(role)) user.roles.push(role);
+  if (!user) return next(USER_NOT_FOUND);
 
-    await Promise.all([info.save(), user.save()]);
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  info.role = role;
+  user.role = role;
+  await Promise.all([info.save(), user.save()]);
 
-const removeRole = (...roles) => async (req, res, next) => {
-  const { id } = req.params;
+  res.json(createResponse(res));
+});
 
-  try {
-    const info = await UserInfo.findById(id);
-    if (!info) return next(USER_INFO_NOT_FOUND);
+const clear = asyncHandler(async (req, res, next) => {
+  await UserInfo.deleteMany({ user: { $exists: false } });
+  res.json(createResponse(res));
+});
 
-    const user = await User.findById(info.user);
-    if (!user) return next(USER_NOT_FOUND);
-
-    roles.forEach(role => {
-      const infoIdx = info.roles.indexOf(role);
-      const userIdx = user.roles.indexOf(role);
-      if (infoIdx !== -1) info.roles.splice(infoIdx, 1);
-      if (userIdx !== -1) user.roles.splice(userIdx, 1);
-    });
-
-    await Promise.all([info.save(), user.save()]);
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
-
-const clear = async (req, res, next) => {
-  try {
-    await UserInfo.deleteMany({ user: { $exists: false } });
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
-
-const removeUser = async (req, res, next) => {
+const removeUser = asyncHandler(async (req, res, next) => {
   const { params: { id }, user } = req;
 
   if (String(user.info) === String(id)) return next(FORBIDDEN);
 
-  try {
-    const info = await UserInfo.findById(id);
-    if (!info) return (USER_INFO_NOT_FOUND);
-    if (!info.user) return (USER_DELETED);
+  const info = await UserInfo.findById(id);
 
+  if (!info) return (USER_INFO_NOT_FOUND);
+  if (!info.user) return (USER_DELETED);
+
+  const userInstance = await User.findById(info.user);
+
+  if (userInstance) await userInstance.deleteOne();
+
+  await info.updateOne({ $unset: { user: '' } });
+
+  res.json(createResponse(res));
+});
+
+const clearUser = asyncHandler(async (req, res, next) => {
+  const { params: { id }, user } = req;
+
+  if (String(user.info) === String(id)) return next(FORBIDDEN);
+
+  const info = await UserInfo.findById(id);
+  if (!info) return (USER_INFO_NOT_FOUND);
+  if (info.user) {
     const userInstance = await User.findById(info.user);
-    if (userInstance) await userInstance.deleteOne();
-
-    await info.updateOne({ $unset: { user: '' } });
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
+    if (userInstance) userInstance.deleteOne();
   }
-};
-
-const clearUser = async (req, res, next) => {
-  const { params: { id }, user } = req;
-
-  if (String(user.info) === String(id)) return next(FORBIDDEN);
-
-  try {
-    const info = await UserInfo.findById(id);
-    if (!info) return (USER_INFO_NOT_FOUND);
-    if (info.user) {
-      const userInstance = await User.findById(info.user);
-      if (userInstance) userInstance.deleteOne();
-    }
-    await info.deleteOne();
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  await info.deleteOne();
+  res.json(createResponse(res));
+});
 
 function generatePassword() {
   const strings = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*_+-='.split('');
@@ -287,6 +230,7 @@ function generatePassword() {
 }
 
 
+exports.getMembers = getUsers('member');
 exports.getStudents = getUsers('student');
 exports.getStaffs = getUsers('staff');
 exports.getOperators = getUsers('operator');
@@ -301,10 +245,7 @@ exports.updateStudent = updateUser('student');
 exports.updateStaff = updateUser('staff');
 exports.updateOperator = updateUser('operator');
 exports.setPermissions = setPermissions;
-exports.addAdminRole = addRole('admin');
-exports.addOperatorRole = addRole('operator');
-exports.removeAdminRole = removeRole('admin');
-exports.removeOperatorRole = removeRole('admin', 'operator');
+exports.changeRole = changeRole;
 exports.clear = clear;
 exports.removeUser = removeUser;
 exports.clearUser = clearUser;

@@ -22,7 +22,8 @@ module.exports = dir => {
     })
   ];
 
-  if (IS_DEV) transports.push(new winston.transports.Console({ format, handleExceptions: true, colorize: true }));
+  if (IS_DEV)
+    transports.push(new winston.transports.Console({ format, handleExceptions: true, colorize: true }));
 
   const logger = winston.createLogger({
     level: LOG_LEVEL,

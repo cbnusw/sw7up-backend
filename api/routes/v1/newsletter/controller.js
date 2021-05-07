@@ -1,7 +1,8 @@
-const { join } = require('path');
 const cheerio = require('cheerio');
+const asyncHandler = require('express-async-handler');
 const { promises, existsSync } = require('fs');
-const { hasSomeRoles } = require('../../../../shared/utils/permission');
+const { join } = require('path');
+const { hasRoles } = require('../../../../shared/utils/permission');
 const { createResponse } = require('../../../../shared/utils/response');
 const { Newsletter, UserInfo } = require('../../../../shared/models');
 const {
@@ -16,32 +17,25 @@ const {
 } = require('../../../../shared/errors');
 const service = require('./service');
 
-const getNewsletters = async (req, res, next) => {
+const getNewsletters = asyncHandler(async (req, res, next) => {
   const { query } = req;
-  try {
-    const documents = await Newsletter.search(query, null, [{ path: 'writer', model: UserInfo }]);
-    res.json(createResponse(res, documents));
-  } catch (e) {
-    next(e);
-  }
-};
+  const documents = await Newsletter.search(query, null, [{ path: 'writer', model: UserInfo }]);
+  res.json(createResponse(res, documents));
+});
 
-const getNewsletter = async (req, res, next) => {
+const getNewsletter = asyncHandler(async (req, res, next) => {
   const { params: { id }, user } = req;
+  const doc = await Newsletter.findById(id).populate({ path: 'writer', model: UserInfo });
 
-  try {
-    const doc = await Newsletter.findById(id).populate({ path: 'writer', model: UserInfo });
-    if (!user && !hasSomeRoles(user, 'admin', 'operator')) {
-      doc.hits++;
-      doc.save();
-    }
-    res.json(createResponse(res, doc));
-  } catch (e) {
-    next(e);
+  if (!user && !hasRoles(user, 'admin', 'operator')) {
+    doc.hits++;
+    doc.save();
   }
-};
 
-const unzip = async (req, res, next) => {
+  res.json(createResponse(res, doc));
+});
+
+const unzip = asyncHandler(async (req, res, next) => {
   const { body, file } = req;
   const { yearMonth } = body;
   const zipFile = file ? join(ROOT_DIR, NEWSLETTER_DIR, file.filename) : null;
@@ -84,32 +78,25 @@ const unzip = async (req, res, next) => {
   body.link = `${WEB_APP_HOST}/${NEWSLETTER_DIR}/${yearMonth}/index.html`;
   await promises.unlink(zipFile);
   next();
-};
+});
 
-const createNewsletter = async (req, res, next) => {
+const createNewsletter = asyncHandler(async (req, res, next) => {
   const { body, user } = req;
   body.writer = user.info;
 
-  try {
-    const doc = await Newsletter.create(body);
-    res.json(createResponse(res, doc));
-  } catch (e) {
-    next(e);
-  }
-};
+  const doc = await Newsletter.create(body);
 
-const removeNewsletter = async (req, res, next) => {
+  res.json(createResponse(res, doc));
+});
+
+const removeNewsletter = asyncHandler(async (req, res, next) => {
   const { params: { id } } = req;
+  const doc = await Newsletter.findById(id);
+  const { link } = doc;
 
-  try {
-    const doc = await Newsletter.findById(id);
-    const { link } = doc;
-    await Promise.all([doc.deleteOne(), service.removeFile(req, link)]);
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  await Promise.all([doc.deleteOne(), service.removeFile(req, link)]);
+  res.json(createResponse(res));
+});
 
 exports.getNewsletters = getNewsletters;
 exports.getNewsletter = getNewsletter;

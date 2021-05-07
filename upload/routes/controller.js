@@ -1,7 +1,8 @@
+const asyncHandler = require('express-async-handler');
 const { parse } = require('url');
 const { join, basename } = require('path');
 const { createResponse } = require('../../shared/utils/response');
-const { hasSomeRoles } = require('../../shared/utils/permission');
+const { hasRoles } = require('../../shared/utils/permission');
 const { File } = require('../../shared/models/@main');
 const { removeFileByUrl: _removeFileByUrl, removeFileById: _removeFileById } = require('../../shared/utils/file');
 const {
@@ -15,7 +16,7 @@ const {
   FORBIDDEN,
 } = require('../../shared/errors');
 
-const uploadMiddleware = async (req, res, next) => {
+const uploadMiddleware = asyncHandler(async (req, res, next) => {
   if (!req.file) return next(FAIL_FILE_UPLOAD);
 
   const { access = [] } = req.body || req.query || {};
@@ -30,50 +31,39 @@ const uploadMiddleware = async (req, res, next) => {
   });
 
   next();
-};
+});
 
-const download = async (req, res, next) => {
+const download = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
   const file = await File.findById(id);
   if (!file) return next(FILE_NOT_FOUND);
-  if (file.access.length > 0 && !hasSomeRoles(req.user, ...file.access)) return next(FORBIDDEN);
+  if (file.access.length > 0 && !hasRoles(req.user, ...file.access)) return next(FORBIDDEN);
   const filePath = join(ROOT_DIR, UPLOAD_DIR, basename(parse(file.url).pathname));
 
   res.download(filePath, file.filename);
-};
+});
 
-const uploadFile = async (req, res, next) => {
+const uploadFile = asyncHandler(async (req, res, next) => {
   const { file: data } = req;
   const { url } = data;
 
-  try {
-    res.json({ uploaded: true, url, error: null, data });
-  } catch (e) {
-    next(e);
-  }
-};
+  res.json({ uploaded: true, url, error: null, data });
+});
 
-const removeFileByUrl = async (req, res, next) => {
+const removeFileByUrl = asyncHandler(async (req, res, next) => {
   const { url } = req.query;
-  try {
-    await _removeFileByUrl(req, url);
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
 
-const removeFileById = async (req, res, next) => {
+  await _removeFileByUrl(req, url);
+  res.json(createResponse(res));
+});
+
+const removeFileById = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
-  try {
-    await _removeFileById(req, id);
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  await _removeFileById(req, id);
+  res.json(createResponse(res));
+});
 
 exports.download = download;
 exports.uploadMiddleware = uploadMiddleware;

@@ -17,8 +17,8 @@ async function createAdmin() {
   const admin = {
     no: ADMIN_NO,
     password: ADMIN_PASSWORD,
-    roles: ['admin'],
-    permissions: ['all'],
+    role: 'admin',
+    permissions: [],
     info: {
       email: ADMIN_EMAIL,
       name: ADMIN_NAME,
@@ -27,12 +27,12 @@ async function createAdmin() {
     }
   };
 
-  const count = await User.countDocuments({ roles: 'admin' });
+  const count = await User.countDocuments({ role: 'admin' });
 
   if (count === 0) {
-    const { no, password, roles, permissions, info } = admin;
-    const user = await User.create({ no, password, roles, permissions });
-    const userInfo = await UserInfo.create({ no, ...info, roles, user: user._id });
+    const { no, password, role, permissions, info } = admin;
+    const user = await User.create({ no, password, role, permissions });
+    const userInfo = await UserInfo.create({ no, ...info, role, user: user._id });
     user.info = userInfo._id;
     await user.save();
   }

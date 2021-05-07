@@ -11,7 +11,7 @@ const schema = createSchema({
     unique: true,
   },
   hashedPassword: String,
-  roles: [roleSchema],
+  role: roleSchema,
   permissions: [{
     type: String,
     enum: PERMISSIONS,
@@ -36,7 +36,7 @@ schema.virtual('profile')
   .get(function () {
     return {
       _id: this._id,
-      roles: this.roles,
+      role: this.role,
       permissions: this.permissions,
       info: this.info
     };

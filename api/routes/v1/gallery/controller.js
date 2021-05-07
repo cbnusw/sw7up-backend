@@ -1,80 +1,63 @@
+const asyncHandler = require('express-async-handler');
 const { Gallery, UserInfo } = require('../../../../shared/models');
 const { createResponse } = require('../../../../shared/utils/response');
-const { hasSomeRoles } = require('../../../../shared/utils/permission');
+const { hasRoles } = require('../../../../shared/utils/permission');
 const { removeFilesByUrls, updateFiles } = require('../../../../shared/utils/file');
 const {
   GALLERY_NOT_FOUND,
 } = require('../../../../shared/errors');
 
-const getGalleries = async (req, res, next) => {
+const getGalleries = asyncHandler(async (req, res, next) => {
   const { query } = req;
-  try {
-    const documents = await Gallery.search(query, null, [{ path: 'writer', model: UserInfo }]);
-    res.json(createResponse(res, documents));
-  } catch (e) {
-    next(e);
-  }
-};
+  const documents = await Gallery.search(query, null, [{ path: 'writer', model: UserInfo }]);
+  res.json(createResponse(res, documents));
+});
 
-const getGallery = async (req, res, next) => {
+const getGallery = asyncHandler(async (req, res, next) => {
   const { params: { id }, user } = req;
+  const doc = await Gallery.findById(id).populate({ path: 'writer', model: UserInfo });
 
-  try {
-    const doc = await Gallery.findById(id).populate({ path: 'writer', model: UserInfo });
-    if (!doc) return next(GALLERY_NOT_FOUND);
-
-    if (!user || !hasSomeRoles(user, 'admin', 'operator')) {
-      doc.hits++;
-      doc.save();
-    }
-
-    res.json(createResponse(res, doc));
-  } catch (e) {
-    next(e);
+  if (!doc) return next(GALLERY_NOT_FOUND);
+  if (!user || !hasRoles(user, 'admin', 'operator')) {
+    doc.hits++;
+    doc.save();
   }
-};
 
-const createGallery = async (req, res, next) => {
+  res.json(createResponse(res, doc));
+});
+
+const createGallery = asyncHandler(async (req, res, next) => {
   const { body, user } = req;
   body.writer = user.info;
 
-  try {
-    const urls = body.pictures.map(picture => picture.url);
-    const doc = await Gallery.create(body);
-    await updateFiles(req, doc._id, 'Gallery', urls);
-    res.json(createResponse(res, doc));
-  } catch (e) {
-    next(e);
-  }
-};
+  const urls = body.pictures.map(picture => picture.url);
+  const doc = await Gallery.create(body);
 
-const updateGallery = async (req, res, next) => {
+  await updateFiles(req, doc._id, 'Gallery', urls);
+  res.json(createResponse(res, doc));
+});
+
+const updateGallery = asyncHandler(async (req, res, next) => {
   const { params: { id }, body: $set } = req;
   const urls = $set.pictures.map(picture => picture.url);
+  const doc = await Gallery.findById(id);
 
-  try {
-    const doc = await Gallery.findById(id);
-    if (!doc) return next(GALLERY_NOT_FOUND);
-    await Promise.all([doc.updateOne({ $set }), updateFiles(req, doc._id, 'Gallery', urls)]);
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  if (!doc) return next(GALLERY_NOT_FOUND);
+  await Promise.all([doc.updateOne({ $set }), updateFiles(req, doc._id, 'Gallery', urls)]);
+  res.json(createResponse(res));
+});
 
-const removeGallery = async (req, res, next) => {
+const removeGallery = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
+  const doc = await Gallery.findById(id);
 
-  try {
-    const doc = await Gallery.findById(id);
-    if (!doc) return next(GALLERY_NOT_FOUND);
-    const urls = doc.pictures.map(picture => picture.url);
-    await Promise.all([doc.deleteOne(), removeFilesByUrls(req, urls)]);
-    res.json(createResponse(res));
-  } catch (e) {
-    next(e);
-  }
-};
+  if (!doc) return next(GALLERY_NOT_FOUND);
+
+  const urls = doc.pictures.map(picture => picture.url);
+
+  await Promise.all([doc.deleteOne(), removeFilesByUrls(req, urls)]);
+  res.json(createResponse(res));
+});
 
 exports.getGalleries = getGalleries;
 exports.getGallery = getGallery;

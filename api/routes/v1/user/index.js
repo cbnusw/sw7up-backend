@@ -4,6 +4,7 @@ const controller = require('./controller');
 
 const router = Router();
 
+router.get('/member', ...isOperator, controller.getMembers);
 router.get('/student', ...isOperator, controller.getStudents);
 router.get('/staff', ...isOperator, controller.getStaffs);
 router.get('/operator', ...isOperator, controller.getOperators);
@@ -21,10 +22,8 @@ router.put('/staff/:id', ...isOperator, controller.updateStaff);
 router.put('/operator/:id', ...isOperator, controller.updateOperator);
 
 router.patch('/:id/permissions', ...isOperator, controller.setPermissions);
-router.patch('/:id/admin/add', ...isAdmin, controller.addAdminRole);
-router.patch('/:id/admin/remove', ...isAdmin, controller.removeAdminRole);
-router.patch('/:id/operator/add', ...isOperator, controller.addOperatorRole);
-router.patch('/:id/operator/remove', ...isOperator, controller.removeOperatorRole);
+router.patch('/:id/admin/change', ...isAdmin, controller.changeRole('admin'));
+router.patch('/:id/operator/change', ...isOperator, controller.changeRole('operator'));
 
 router.delete('/clear', ...isAdmin, controller.clear);
 router.delete('/:id', ...isOperator, controller.removeUser);

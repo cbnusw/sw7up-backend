@@ -7,7 +7,7 @@ const { v4 } = require('uuid');
 const { sync } = require('mkdirp');
 const { ROOT_DIR, UPLOAD_DIR } = require('../env');
 const { File } = require('../models/@main');
-const { hasSomeRoles } = require('../utils/permission');
+const { hasRoles } = require('../utils/permission');
 const { difference } = require('./functions')
 const {
   FORBIDDEN,
@@ -52,7 +52,7 @@ const removeFileByUrl = async (req, url, baseDir = UPLOAD_DIR) => {
   if (!url) return;
   const file = await File.findOne({ url });
   if (!file) return;
-  if (!hasSomeRoles(user, 'admin', 'operator') && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
+  if (!hasRoles(user, 'admin', 'operator') && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
   const filePath = join(ROOT_DIR, baseDir, getBasename(url));
   await Promise.all([file.deleteOne(), promises.unlink(filePath)]);
 };
@@ -63,7 +63,7 @@ const removeFileById = async (req, id, baseDir = UPLOAD_DIR) => {
   if (!id) return;
   const file = await File.findById(id);
   if (!file) return;
-  if (!hasSomeRoles(user, 'admin', 'operator') && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
+  if (!hasRoles(user, 'admin', 'operator') && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
   const filePath = join(ROOT_DIR, baseDir, getBasename(file.url));
   await Promise.all([file.deleteOne(), promises.unlink(filePath)]);
 };
@@ -72,20 +72,17 @@ const removeFilesByUrls = async (req, urls, baseDir = UPLOAD_DIR) => await Promi
 
 const removeFilesByIds = async (req, ids, baseDir = UPLOAD_DIR) => await Promise.all(ids.map(id => removeFileById(req, id, baseDir)));
 
-const updateFiles = async (req, ref, refModel, urls) => {
+const updateFiles = async (req, ref, refModel, urls = []) => {
   const { user } = req;
   const files = await File.find({ ref, refModel });
+  urls = urls.filter(url => !!url);
 
-  if (!hasSomeRoles(user, 'admin', 'staff') && files.some(file => String(user.info) !== String(file.uploader)))
+  if (!hasRoles(user, 'admin', 'operator') && files.some(file => String(user.info) !== String(file.uploader)))
     throw FORBIDDEN;
 
   const inDB = files.map(file => file.url);
   const deletions = difference(inDB, urls);
   const additions = difference(urls, inDB);
-
-  console.log(additions);
-  console.log(deletions);
-  console.log(File);
 
   if (additions.length > 0) await File.updateMany({ url: { $in: additions } }, { $set: { ref, refModel } });
   if (deletions.length > 0) await removeFilesByUrls(req, deletions);

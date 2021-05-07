@@ -1,8 +1,8 @@
+const asyncHandler = require('express-async-handler');
 const { verifyAccessToken } = require('../utils/jwt');
 const {
   hasRole: _hasRole,
-  hasEveryRoles: _hasEveryRoles,
-  hasSomeRoles: _hasSomeRoles,
+  hasRoles: _hasRoles,
   hasPermission: _hasPermission,
   hasEveryPermissions: _hasEveryPermissions,
   hasSomePermissions: _hasSomePermissions
@@ -12,7 +12,7 @@ const {
   TOKEN_REQUIRED
 } = require('../../shared/errors');
 
-const isAuthenticated = async (req, res, next) => {
+const isAuthenticated = asyncHandler(async (req, res, next) => {
   const token = req.headers['x-access-token'];
 
   if (token) {
@@ -24,21 +24,16 @@ const isAuthenticated = async (req, res, next) => {
     }
   }
   return next(TOKEN_REQUIRED);
-};
+});
 
 const hasRole = role => [
   isAuthenticated,
   (req, res, next) => _hasRole(req.user, role) ? next() : next(FORBIDDEN)
 ];
 
-const hasEveryRoles = (...roles) => [
+const hasRoles = (...roles) => [
   isAuthenticated,
-  (req, res, next) => _hasEveryRoles(req.user, ...roles) ? next() : next(FORBIDDEN)
-];
-
-const hasSomeRoles = (...roles) => [
-  isAuthenticated,
-  (req, res, next) => _hasSomeRoles(req.user, ...roles) ? next() : next(FORBIDDEN)
+  (req, res, next) => _hasRoles(req.user, ...roles) ? next() : next(FORBIDDEN)
 ];
 
 const hasPermission = permission => [
@@ -58,11 +53,14 @@ const hasSomePermissions = (...permissions) => [
 
 exports.isAuthenticated = isAuthenticated;
 exports.isAdmin = hasRole('admin');
-exports.isOperator = hasSomeRoles('admin', 'operator');
+exports.isOperator = hasRoles('admin', 'operator');
+exports.isStaff = hasRole('staff');
 exports.isStudent = hasRole('student');
+exports.isMember = hasRole('member');
 exports.hasRole = hasRole;
-exports.hasEveryRoles = hasEveryRoles;
-exports.hasSomeRoles = hasSomeRoles;
+exports.hasRoles = hasRoles;
+// exports.hasEveryRoles = hasEveryRoles;
+// exports.hasSomeRoles = hasSomeRoles;
 exports.hasPermission = hasPermission;
 exports.hasEveryPermissions = hasEveryPermissions;
 exports.hasSomePermissions = hasSomePermissions;

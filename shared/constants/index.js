@@ -1,7 +1,12 @@
+const notOperatorRoles = [
+  'staff',    // 교직원(충북대 소속만)
+  'student',  // 학생(충북대 소속만)
+  'member',   // 충북대 소속 외 회원
+];
+
 const access = [
-  'operator',
-  'staff',
-  'student',
+  'operator',   // 운영자
+  ...notOperatorRoles,
 ];
 
 const roles = [
@@ -11,7 +16,6 @@ const roles = [
 
 // 운영자가 아닌 사람의 권한 설정
 const permissions = [
-  'all',
   'judge',
   'qna',
 ];
@@ -49,6 +53,7 @@ const qnaCategories = [
   '웹 응용 프로그래밍'
 ];
 
+exports.NOT_OPERATOR_ROLES = notOperatorRoles;
 exports.ROLES = roles;
 exports.PERMISSIONS = permissions;
 exports.CENTERS = centers;

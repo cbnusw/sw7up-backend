@@ -13,6 +13,7 @@ const errors = {
   INVALID_NEWSLETTER_FILE: [400, '올바르지 않은 뉴스레터 파일입니다.'],
   INVALID_OTP: [400, '잘못된 OTP 코드입니다.'],
   INVALID_PASSWORD: [400, '잘못된 비밀번호입니다.'],
+  INVALID_ROLE: [400, '잘못된 회원 유형입니다.'],
   NEWSLETTER_FILE_REQUIRED: [400, '뉴스레터 파일이 필요합니다.'],
   PASSWORD_REQUIRED: [400, '비밀번호가 필요합니다.'],
   PHONE_NUMBER_USED: [400, '이미 사용하고 있는 전화번호입니다.'],

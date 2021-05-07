@@ -54,7 +54,7 @@ Content-Type: application/json
 {
   "no": "123121",
   "password": "asdf1234",
-  "roles": ["staff"],
+  "role": "staff",
   "info": {
     "name": "김교수",
     "email": "kim@cbnu.ac.kr",

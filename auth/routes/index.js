@@ -10,10 +10,11 @@ router.get('/token/validate', isAuthenticated, controller.validateAccessToken);
 router.get('/token/refresh', controller.refreshToken);
 
 router.post('/join', controller.join);
-router.post('/student/join', controller.joinStudent);
-router.post('/staff/join', controller.joinStaff);
+// router.post('/student/join', controller.joinStudent);
+// router.post('/staff/join', controller.joinStaff);
 router.post('/login', controller.login);
 router.post('/operator/login', controller.loginOperator);
+router.post('/no/find', controller.findRegNo);
 router.post('/otp/send', controller.sendOtp);
 router.post('/otp/check', controller.checkOtp);
 router.post('/password/init', controller.initPassword);

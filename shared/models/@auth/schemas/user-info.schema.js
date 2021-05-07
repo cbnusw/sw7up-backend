@@ -38,10 +38,11 @@ const schema = createSchema({
   department: {
     type: String,
     trim: true,
-    required: true,
+    index: true,
+    // required: true,
   },
   position: String,
-  roles: [{ ...roleSchema, index: true }],
+  role: { ...roleSchema, index: true },
   user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -62,7 +63,7 @@ schema.plugin(searchPlugin({
     name: toRegEx,
     email: toRegEx,
     phone: toRegEx,
-    roles: to,
+    role: to,
   }
 }));
 

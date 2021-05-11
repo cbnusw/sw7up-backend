@@ -31,7 +31,7 @@ module.exports = dir => {
   });
 
   logger.stream = {
-    write(message) {
+    write: function (message) {
       logger.info(message);
     }
   };

@@ -36,11 +36,10 @@ const createUpload = (uploadDir = UPLOAD_DIR) => {
 const findImageUrlsFromHtml = html => {
   const $ = cheerio.load(html || '');
   const urls = [];
-  const filter = this.filter;
 
   $('img').each(function () {
     const url = $(this).attr('src');
-    if (filter(url)) urls.push(url);
+    urls.push(url);
   });
 
   return urls;
@@ -52,7 +51,7 @@ const removeFileByUrl = async (req, url, baseDir = UPLOAD_DIR) => {
   if (!url) return;
   const file = await File.findOne({ url });
   if (!file) return;
-  if (!hasRoles(user, 'admin', 'operator') && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
+  if (!hasRoles(user) && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
   const filePath = join(ROOT_DIR, baseDir, getBasename(url));
   await Promise.all([file.deleteOne(), promises.unlink(filePath)]);
 };
@@ -63,7 +62,7 @@ const removeFileById = async (req, id, baseDir = UPLOAD_DIR) => {
   if (!id) return;
   const file = await File.findById(id);
   if (!file) return;
-  if (!hasRoles(user, 'admin', 'operator') && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
+  if (!hasRoles(user) && String(user.info) !== String(file.uploader)) throw FORBIDDEN;
   const filePath = join(ROOT_DIR, baseDir, getBasename(file.url));
   await Promise.all([file.deleteOne(), promises.unlink(filePath)]);
 };
@@ -77,7 +76,7 @@ const updateFiles = async (req, ref, refModel, urls = []) => {
   const files = await File.find({ ref, refModel });
   urls = urls.filter(url => !!url);
 
-  if (!hasRoles(user, 'admin', 'operator') && files.some(file => String(user.info) !== String(file.uploader)))
+  if (!hasRoles(user) && files.some(file => String(user.info) !== String(file.uploader)))
     throw FORBIDDEN;
 
   const inDB = files.map(file => file.url);

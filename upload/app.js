@@ -30,7 +30,7 @@ middleware(app, [
       const url = `${HOST}${req.originalUrl}`;
       const file = await File.findOne({ url });
       if (!file) return next();
-      if (file.access.length > 0 && !hasRoles(user, ...file.access)) return next(FORBIDDEN);
+      if (!file.access.includes('nonmember') && !hasRoles(user, ...file.access)) return next(FORBIDDEN);
       next();
     }),
     express.static(join(ROOT_DIR, UPLOAD_DIR))

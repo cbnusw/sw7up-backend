@@ -18,7 +18,7 @@ const getPressRelease = asyncHandler(async (req, res, next) => {
   const doc = await PressRelease.findById(id).populate({ path: 'writer', model: UserInfo });
 
   if (!doc) return next(PRESS_RELEASE_NOT_FOUND);
-  if (!user || !hasRoles(user, 'admin', 'operator')) {
+  if (!user || !hasRoles(user)) {
     doc.hits++;
     doc.save();
   }

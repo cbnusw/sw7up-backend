@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { hasPermission, hasSomePermissions, isAdmin, isOperator } = require('../../../../shared/middlewares/auth');
+const { isOperator } = require('../../../../shared/middlewares/auth');
 const controller = require('./controller');
 
 const router = Router();
@@ -22,11 +22,11 @@ router.put('/staff/:id', ...isOperator, controller.updateStaff);
 router.put('/operator/:id', ...isOperator, controller.updateOperator);
 
 router.patch('/:id/permissions', ...isOperator, controller.setPermissions);
-router.patch('/:id/admin/change', ...isAdmin, controller.changeRole('admin'));
+router.patch('/:id/admin/change', ...isOperator, controller.changeRole('admin'));
 router.patch('/:id/operator/change', ...isOperator, controller.changeRole('operator'));
 
-router.delete('/clear', ...isAdmin, controller.clear);
+router.delete('/clear', ...isOperator, controller.clear);
 router.delete('/:id', ...isOperator, controller.removeUser);
-router.delete('/:id/clear', ...isAdmin, controller.clearUser);
+router.delete('/:id/clear', ...isOperator, controller.clearUser);
 
 module.exports = router;

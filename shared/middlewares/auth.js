@@ -67,8 +67,7 @@ const hasEveryPermissions = (...permissions) => [
 
 exports.authenticate = authenticate;
 exports.isAuthenticated = isAuthenticated;
-exports.isAdmin = hasRole('admin');
-exports.isOperator = hasRoles('admin', 'operator');
+exports.isOperator = hasRoles();
 exports.isStaff = hasRole('staff');
 exports.isStudent = hasRole('student');
 exports.hasRole = hasRole;

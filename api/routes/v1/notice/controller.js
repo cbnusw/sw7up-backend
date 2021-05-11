@@ -19,8 +19,8 @@ const getNotice = asyncHandler(async (req, res, next) => {
     .populate('attachments');
 
   if (!doc) return next(NOTICE_NOT_FOUND);
-  if (doc.access.length > 0 && !hasRoles(user, ...doc.access)) return next(FORBIDDEN);
-  if (!user || !hasRoles(user, 'admin', 'operator')) {
+  if (!doc.access.includes('nonmember') && !hasRoles(user, ...doc.access)) return next(FORBIDDEN);
+  if (!user || !hasRoles(user)) {
     doc.hits++;
     doc.save();
   }

@@ -4,6 +4,11 @@ const { searchPlugin } = require('../../plugins');
 const { to, toNumber, toRef, toRegEx } = require('../../mappers');
 const { NOTICE_ACCESS, NOTICE_CATEGORIES } = require('../../../constants');
 
+const accessSchema = {
+  type: String,
+  enum: NOTICE_ACCESS
+}
+
 const schema = createSchema({
   category: {
     type: String,
@@ -24,10 +29,10 @@ const schema = createSchema({
     type: Date,
     index: true,
   },
-  access: [{
-    type: String,
-    enum: NOTICE_ACCESS,
-  }],
+  access: {
+    type: [accessSchema],
+    default: [...NOTICE_ACCESS]
+  },
   writer: {
     type: Schema.Types.ObjectId,
     index: true,

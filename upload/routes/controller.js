@@ -38,7 +38,7 @@ const download = asyncHandler(async (req, res, next) => {
 
   const file = await File.findById(id);
   if (!file) return next(FILE_NOT_FOUND);
-  if (file.access.length > 0 && !hasRoles(req.user, ...file.access)) return next(FORBIDDEN);
+  if (!file.access.includes('nonmember') && !hasRoles(req.user, ...file.access)) return next(FORBIDDEN);
   const filePath = join(ROOT_DIR, UPLOAD_DIR, basename(parse(file.url).pathname));
 
   res.download(filePath, file.filename);

@@ -7,11 +7,13 @@ const notOperatorRoles = [
 const access = [
   'operator',   // 운영자
   ...notOperatorRoles,
+  'nonmember'
 ];
 
 const roles = [
   'admin',
-  ...access
+  'operator',
+  ...notOperatorRoles,
 ];
 
 // 운영자가 아닌 사람의 권한 설정

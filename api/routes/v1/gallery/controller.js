@@ -18,7 +18,7 @@ const getGallery = asyncHandler(async (req, res, next) => {
   const doc = await Gallery.findById(id).populate({ path: 'writer', model: UserInfo });
 
   if (!doc) return next(GALLERY_NOT_FOUND);
-  if (!user || !hasRoles(user, 'admin', 'operator')) {
+  if (!user || !hasRoles(user)) {
     doc.hits++;
     doc.save();
   }

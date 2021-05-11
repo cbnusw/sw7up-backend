@@ -2,6 +2,11 @@ const { Schema } = require('mongoose');
 const { createSchema } = require('../../helpers');
 const { FILE_ACCESS, FILE_TYPES } = require('../../../constants');
 
+const accessSchema = {
+  type: String,
+  enum: FILE_ACCESS
+};
+
 const schema = createSchema({
   url: {
     type: String,
@@ -11,10 +16,10 @@ const schema = createSchema({
   filename: String,
   mimetype: String,
   size: Number,
-  access: [{
-    type: String,
-    enum: FILE_ACCESS,
-  }],
+  access: {
+    type: [accessSchema],
+    default: [...FILE_ACCESS]
+  },
   ref: {
     type: Schema.Types.ObjectId,
     refPath: 'refModel',

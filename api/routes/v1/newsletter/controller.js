@@ -27,7 +27,7 @@ const getNewsletter = asyncHandler(async (req, res, next) => {
   const { params: { id }, user } = req;
   const doc = await Newsletter.findById(id).populate({ path: 'writer', model: UserInfo });
 
-  if (!user && !hasRoles(user, 'admin', 'operator')) {
+  if (!user && !hasRoles(user)) {
     doc.hits++;
     doc.save();
   }

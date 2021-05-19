@@ -8,7 +8,6 @@ const { IS_DEV } = require('../env');
 module.exports = (app, staticOptions) => {
   const logDir = app.get('logDir');
   const { stream } = require('../utils/logger')(logDir);
-  console.log(stream);
 
   app.use(helmet());
   app.use(compression());

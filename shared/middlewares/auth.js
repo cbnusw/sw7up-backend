@@ -17,12 +17,16 @@ const authenticate = asyncHandler(async (req, res, next) => {
     return next();
   }
 
-  const headers = { 'x-access-token': accessToken };
-  const response = await axios.get(`${AUTH_APP_HOST}/token/validate`, { headers });
-  const { data } = response.data;
+  try {
+    const headers = { 'x-access-token': accessToken };
+    const response = await axios.get(`${AUTH_APP_HOST}/token/validate`, { headers });
+    const { data } = response.data;
 
-  req.user = data;
-  next();
+    req.user = data;
+    next();
+  } catch (e) {
+    next(e.response && e.response.data || e);
+  }
 });
 
 const isAuthenticated = asyncHandler(async (req, res, next) => {
@@ -36,7 +40,7 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
     req.user = data;
     next();
   } catch (e) {
-    throw e.response && e.response.data || e;
+    next(e.response && e.response.data || e);
   }
 });
 

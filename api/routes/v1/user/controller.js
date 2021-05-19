@@ -89,7 +89,7 @@ const restore = asyncHandler(async (req, res, next) => {
   info.user = user._id;
 
   const mailBody = `<p>계정을 복구하였습니다. 다음 계정으로 로그인해주세요.</p>
-<p>이메일: ${email}</p>
+<p>학번/교번 또는 아이디: ${no}</p>
 <p>임시 비밀번호: ${password}</p>
 <p style="color: red; font-size: 0.8em">* 로그인 후 비밀번호를 변경해주세요.</p>`;
 
@@ -162,19 +162,42 @@ const setPermissions = asyncHandler(async (req, res, next) => {
   res.json(createResponse(res));
 });
 
-const changeRole = role => asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
+const changeToOperatorRole = asyncHandler(async (req, res, next) => {
+  const { params: { id } } = req;
   const info = await UserInfo.findById(id);
 
   if (!info) return next(USER_INFO_NOT_FOUND);
 
-  const user = await User.findById(info.user);
+  if (info.user) {
+    const user = await User.findById(info.user);
+    if (!user) return next(USER_NOT_FOUND);
+    user.role = 'operator';
+    await user.save();
+  }
 
-  if (!user) return next(USER_NOT_FOUND);
+  info.role = 'operator';
+  await info.save();
 
+  res.json(createResponse(res));
+});
+
+const removeOperatorRole = asyncHandler(async (req, res, next) => {
+  const { params: { id } } = req;
+  const info = await UserInfo.findById(id);
+
+  if (!info) return next(USER_INFO_NOT_FOUND);
+
+  const role = /^\d{6}$/.test(info.no) ? 'staff' : (/^\d{10}$/.test(info.no) ? 'student' : 'staff');
+
+  if (info.user) {
+    const user = await User.findById(info.user);
+    if (!user) return next(USER_NOT_FOUND);
+    user.role = role;
+    await user.save();
+  }
+  // 계정(no)의 형태에 따라 교직원/학생/일반회원으로 다시 변경
   info.role = role;
-  user.role = role;
-  await Promise.all([info.save(), user.save()]);
+  await info.save();
 
   res.json(createResponse(res));
 });
@@ -234,6 +257,7 @@ exports.getMembers = getUsers('member');
 exports.getStudents = getUsers('student');
 exports.getStaffs = getUsers('staff');
 exports.getOperators = getUsers('operator');
+exports.getMember = getUser('member');
 exports.getStudent = getUser('student');
 exports.getStaff = getUser('staff');
 exports.getOperator = getUser('operator');
@@ -245,7 +269,8 @@ exports.updateStudent = updateUser('student');
 exports.updateStaff = updateUser('staff');
 exports.updateOperator = updateUser('operator');
 exports.setPermissions = setPermissions;
-exports.changeRole = changeRole;
+exports.changeToOperatorRole = changeToOperatorRole;
+exports.removeOperatorRole = removeOperatorRole;
 exports.clear = clear;
 exports.removeUser = removeUser;
 exports.clearUser = clearUser;

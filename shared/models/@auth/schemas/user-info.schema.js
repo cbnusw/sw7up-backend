@@ -33,7 +33,7 @@ const schema = createSchema({
   },
   center: {
     type: String,
-    enum: CENTERS,
+    enum: [...CENTERS, null],
   },
   department: {
     type: String,
@@ -56,7 +56,7 @@ const schema = createSchema({
 schema.index('joinedAt');
 
 schema.plugin(searchPlugin({
-  populate: [{ path: 'user', select: '-hashedPassword' }],
+  populate: [{ path: 'user', select: 'permissions' }],
   sort: 'name',
   mapper: {
     no: toRegEx,

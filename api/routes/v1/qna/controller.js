@@ -21,18 +21,25 @@ const getQnAs = asyncHandler(async (req, res, next) => {
 });
 
 const getQnA = asyncHandler(async (req, res, next) => {
-  const { params: { id }, body: { password } = {}, user } = req;
+  const { params: { id }, body, user } = req;
+  const { password } = body || {};
+
+  console.log(password);
+
   const doc = await Qna.findById(id)
     .populate({ path: 'writer', model: UserInfo })
     .populate({ path: 'replies.writer', model: UserInfo });
 
   if (!doc) return next(QNA_NOT_FOUND);
+
+  const permission = hasQnAPermission(doc, user, password);
   if (!doc.confirm) {
-    if (!hasQnAPermission(doc, user, password)) return next(FORBIDDEN);
+    if (!permission) return next(FORBIDDEN);
   }
 
   const data = JSON.parse(JSON.stringify(doc));
 
+  data.permission = permission;
   delete data.hashedPassword;
 
   res.json(createResponse(res, data));
@@ -195,9 +202,11 @@ const removeReply = asyncHandler(async (req, res, next) => {
 });
 
 function hasQnAPermission(qna, user, password) {
-  const writerId = qna.writer ? qna.writer._id || qna.writer : null;
   if (hasPermission(user, 'qna')) return true;
-  else if (writerId && user && String(writerId) === String(user.info)) return true;
+
+  const writerId = qna.writer ? qna.writer._id || qna.writer : null;
+
+  if (writerId && user && String(writerId) === String(user.info)) return true;
   else if (password && qna.authenticate(password)) return true;
   return false;
 }

@@ -8,6 +8,7 @@ router.get('/member', ...isOperator, controller.getMembers);
 router.get('/student', ...isOperator, controller.getStudents);
 router.get('/staff', ...isOperator, controller.getStaffs);
 router.get('/operator', ...isOperator, controller.getOperators);
+router.get('/member/:id', ...isOperator, controller.getMember);
 router.get('/student/:id', ...isOperator, controller.getStudent);
 router.get('/staff/:id', ...isOperator, controller.getStaff);
 router.get('/operator/:id', ...isOperator, controller.getOperator);
@@ -22,8 +23,8 @@ router.put('/staff/:id', ...isOperator, controller.updateStaff);
 router.put('/operator/:id', ...isOperator, controller.updateOperator);
 
 router.patch('/:id/permissions', ...isOperator, controller.setPermissions);
-router.patch('/:id/admin/change', ...isOperator, controller.changeRole('admin'));
-router.patch('/:id/operator/change', ...isOperator, controller.changeRole('operator'));
+router.patch('/:id/operator/change', ...isOperator, controller.changeToOperatorRole);
+router.patch('/:id/operator/remove', ...isOperator, controller.removeOperatorRole);
 
 router.delete('/clear', ...isOperator, controller.clear);
 router.delete('/:id', ...isOperator, controller.removeUser);

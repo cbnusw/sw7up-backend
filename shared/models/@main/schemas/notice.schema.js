@@ -28,6 +28,7 @@ const schema = createSchema({
   period: {
     type: Date,
     index: true,
+    default: null,
   },
   access: {
     type: [accessSchema],

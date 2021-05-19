@@ -1,15 +1,91 @@
 const asyncHandler = require('express-async-handler');
 const { cloneDeep } = require('lodash');
-const { Notice, UserInfo } = require('../../../../shared/models');
-const { createResponse } = require('../../../../shared/utils/response');
-const { hasRoles } = require('../../../../shared/utils/permission');
 const { FORBIDDEN, NOTICE_NOT_FOUND } = require('../../../../shared/errors');
+const { Notice, UserInfo } = require('../../../../shared/models');
+const { toRegEx } = require('../../../../shared/models/mappers');
+const { hasRoles } = require('../../../../shared/utils/permission');
+const { createResponse } = require('../../../../shared/utils/response');
 const { findImageUrlsFromHtml, removeFilesByUrls, updateFiles } = require('../../../../shared/utils/file');
 
 const getNotices = asyncHandler(async (req, res, next) => {
   const { query } = req;
-  const documents = await Notice.search(query, null, [{ path: 'writer', model: UserInfo }]);
-  res.json(createResponse(res, documents));
+  let { q, category, page, limit, sort } = query;
+
+  const condition = {};
+  const $or = [];
+
+  if (category) condition.category = category;
+
+  if (q) {
+    const [, value] = q.split('=');
+    const writers = await UserInfo.find({ name: toRegEx(value), role: { $in: ['admin', 'operator'] } });
+    const $in = writers.map(writer => writer._id);
+    const v = toRegEx(value);
+    if (v !== undefined) {
+      $or.push({ title: v });
+      if (!category) $or.push({ category: v });
+    }
+    if ($in.length > 0) $or.push({ writer: $in });
+  }
+
+  const importantCondition = { ...condition };
+  const now = new Date();
+
+  importantCondition.important = true;
+  importantCondition.period = { $gte: now };
+
+  if ($or.length > 0) {
+    condition.$and = [{ $or: [{ important: false }, { period: { $lt: now } }, { period: null }] }];
+    condition.$and.push({ $or });
+    importantCondition.$or = [...$or];
+  } else {
+    condition.$or = [{ important: false }, { period: { $lt: now } }, { period: null }]
+  }
+
+  let total = await Notice.countDocuments(condition);
+  const importantTotal = await Notice.countDocuments(importantCondition);
+  total += importantTotal;
+
+  let skip, skipDiff, limitDiff, documents = [];
+  let _query, _importantQuery;
+
+  limit = +limit;
+
+  if (!isNaN(limit) && limit > 0) {
+    skip = +((page || 1) - 1) * limit;
+    skipDiff = skip - importantTotal;
+    limitDiff = limit + skipDiff;
+
+    if (skipDiff <= 0) {
+      _importantQuery = Notice.find(importantCondition)
+        .populate({ path: 'writer', select: 'name', model: UserInfo })
+        .skip(skip)
+        .limit(limit);
+
+      if (sort) _importantQuery.sort(sort);
+    }
+
+    if (limitDiff > 0) {
+      _query = Notice.find(condition)
+        .populate({ path: 'writer', select: 'name', model: UserInfo });
+      if (limitDiff < limit) _query.limit(limitDiff)
+      else _query.skip(skipDiff).limit(limit);
+
+      if (sort) _query.sort(sort);
+    }
+  }
+
+  if (_importantQuery) documents = [...await _importantQuery.exec()];
+  if (_query) documents = [...documents, ...await _query.exec()];
+
+  const data = {
+    total,
+    page,
+    limit,
+    documents
+  };
+
+  res.json(createResponse(res, data));
 });
 
 const getNotice = asyncHandler(async (req, res, next) => {

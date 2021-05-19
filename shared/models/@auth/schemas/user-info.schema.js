@@ -63,6 +63,7 @@ schema.plugin(searchPlugin({
     name: toRegEx,
     email: toRegEx,
     phone: toRegEx,
+    department: toRegEx,
     role: to,
   }
 }));

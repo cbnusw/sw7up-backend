@@ -52,7 +52,8 @@ const qnaCategories = [
   '자료구조와 문제해결기법',
   'Java 프로그래밍 기초',
   '운영체제의 이해',
-  '웹 응용 프로그래밍'
+  '웹 응용 프로그래밍',
+  '2022 예비대학'
 ];
 
 exports.NOT_OPERATOR_ROLES = notOperatorRoles;

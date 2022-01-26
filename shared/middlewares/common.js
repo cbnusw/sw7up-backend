@@ -15,6 +15,6 @@ module.exports = (app, staticOptions) => {
   app.use(morgan(IS_DEV ? 'dev' : 'combined', { stream }));
   app.use(cors());
   if (staticOptions) staticOptions.forEach(options => app.use(...options));
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json({limit: '50mb'}));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 };

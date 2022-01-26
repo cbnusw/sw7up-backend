@@ -27,7 +27,13 @@ const schema = createSchema({
     type: Schema.Types.ObjectId,
     required: true,
     index: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
+}, {
+  createdAt: false
 });
 
 schema.index({ createdAt: -1 });

@@ -46,7 +46,7 @@ const countPlugin = ({ defaultCondition, mapper }) => schema =>
 
 const searchPlugin = ({ defaultCondition, mapper, populate, select, sort }) => schema =>
   schema.statics.search = async function (condition, forcedCondition, additionalPopulate, additionalSelect = '', noCount = false) {
-    const page = +(condition.page || 1);
+    const page = +(condition?.page || 1);
     const limit = +condition.limit;
 
     sort = condition.sort || sort || undefined;
@@ -60,11 +60,14 @@ const searchPlugin = ({ defaultCondition, mapper, populate, select, sort }) => s
 
     const query = this.find(condition);
 
-    if (select) query.select(`${select} ${additionalSelect}`.trim());
+    if (select || additionalSelect) query.select(`${select} ${additionalSelect}`.trim());
 
     if (populate) {
       populate = !Array.isArray(populate) ? [populate] : populate;
-      populate.forEach(p => query.populate(p));
+      populate.forEach(p => {
+        tracePopulate(p);
+        query.populate(p);
+      });
     }
 
     if (additionalPopulate.length > 0) {
@@ -85,6 +88,20 @@ const searchPlugin = ({ defaultCondition, mapper, populate, select, sort }) => s
 
     return { total, page, limit, documents };
   };
+
+function tracePopulate(populate) {
+  if (populate.model && typeof populate.model === 'string') {
+    populate.model = require('../')[populate.model];
+  }
+  if (!populate.populate) return;
+  if (Array.isArray(populate.populate)) {
+    for (let p of populate.populate) {
+      tracePopulate(p);
+    }
+  } else {
+    tracePopulate(populate.populate);
+  }
+}
 
 module.exports = ({ defaultCondition = {}, mapper = {}, populate, select, sort } = {}) => schema => {
   schema.plugin(countPlugin({ defaultCondition, mapper }));

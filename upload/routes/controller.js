@@ -11,13 +11,13 @@ const {
   UPLOAD_DIR,
 } = require('../../shared/env');
 const {
-  FAIL_FILE_UPLOAD,
+  FILE_NOT_UPLOADED,
   FILE_NOT_FOUND,
   FORBIDDEN,
 } = require('../../shared/errors');
 
 const uploadMiddleware = asyncHandler(async (req, res, next) => {
-  if (!req.file) return next(FAIL_FILE_UPLOAD);
+  if (!req.file) return next(FILE_NOT_UPLOADED);
 
   const { access = [] } = req.body || req.query || {};
 

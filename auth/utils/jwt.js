@@ -4,10 +4,6 @@ const { join } = require('path');
 const { RefreshToken } = require('../../shared/models/@auth');
 const {
   ROOT_DIR,
-  JWT_ACCESS_TOKEN_PRIVATE_KEY_FILE,
-  JWT_ACCESS_TOKEN_PUBLIC_KEY_FILE,
-  JWT_REFRESH_TOKEN_PRIVATE_KEY_FILE,
-  JWT_REFRESH_TOKEN_PUBLIC_KEY_FILE,
   JWT_ACCESS_TOKEN_EXPIRES_IN,
   JWT_REFRESH_TOKEN_EXPIRES_IN,
   JWT_ISSUER: issuer,
@@ -21,10 +17,10 @@ const {
   REFRESH_TOKEN_EXPIRED,
 } = require('../../shared/errors');
 
-const ACCESS_TOKEN_PRIVET_KEY = readFileSync(join(ROOT_DIR, JWT_ACCESS_TOKEN_PRIVATE_KEY_FILE));
-const ACCESS_TOKEN_PUBLIC_KEY = readFileSync(join(ROOT_DIR, JWT_ACCESS_TOKEN_PUBLIC_KEY_FILE));
-const REFRESH_TOKEN_PRIVATE_KEY = readFileSync(join(ROOT_DIR, JWT_REFRESH_TOKEN_PRIVATE_KEY_FILE));
-const REFRESH_TOKEN_PUBLIC_KEY = readFileSync(join(ROOT_DIR, JWT_REFRESH_TOKEN_PUBLIC_KEY_FILE));
+const ACCESS_TOKEN_PRIVET_KEY = readFileSync(join(ROOT_DIR, 'config/access-token.private.key'));
+const ACCESS_TOKEN_PUBLIC_KEY = readFileSync(join(ROOT_DIR, 'config/access-token.public.key'));
+const REFRESH_TOKEN_PRIVATE_KEY = readFileSync(join(ROOT_DIR, 'config/refresh-token.private.key'));
+const REFRESH_TOKEN_PUBLIC_KEY = readFileSync(join(ROOT_DIR, 'config/refresh-token.public.key'));
 
 const options = {
   issuer,

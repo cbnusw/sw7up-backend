@@ -44,7 +44,7 @@ const users = [
   },
   // 학생 계정
   {
-    no: '20200010001',
+    no: '2020001001',
     password: 'asdf',
     role: 'student',
     info: {
@@ -55,7 +55,7 @@ const users = [
     }
   },
   {
-    no: '20200010002',
+    no: '2020001002',
     password: 'asdf',
     role: 'student',
     info: {
@@ -66,7 +66,7 @@ const users = [
     }
   },
   {
-    no: '20200010003',
+    no: '2020001003',
     password: 'asdf',
     role: 'student',
     info: {
@@ -77,7 +77,7 @@ const users = [
     }
   },
   {
-    no: '20200010004',
+    no: '2020001004',
     password: 'asdf',
     role: 'student',
     info: {
@@ -90,7 +90,7 @@ const users = [
 
   // 교직원 계정
   {
-    no: '12345',
+    no: '123451',
     password: 'asdf',
     role: 'operator',
     permissions: [],
@@ -103,7 +103,7 @@ const users = [
     }
   },
   {
-    no: '12346',
+    no: '123461',
     password: 'asdf',
     role: 'operator',
     permissions: [],

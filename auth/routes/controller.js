@@ -31,7 +31,7 @@ const getMe = asyncHandler(async (req, res, next) => {
   const doc = await User.findById(user._id)
     .select('-hashedPassword')
     .populate('info');
-
+  
   res.json(createResponse(res, doc));
 });
 

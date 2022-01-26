@@ -3,6 +3,9 @@
 /uploads
 /newsletters
 /test-files
+/config
+!/config/.gitkeep
+/code-uploads
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/windows,linux,macos,webstorm,vscode,node
@@ -128,7 +131,7 @@ typings/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+config/.env
 .env.test
 .env*.local
 

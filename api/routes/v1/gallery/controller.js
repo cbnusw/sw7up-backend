@@ -41,7 +41,7 @@ const updateGallery = asyncHandler(async (req, res, next) => {
   const { params: { id }, body: $set } = req;
   const urls = $set.pictures.map(picture => picture.url);
   const doc = await Gallery.findById(id);
-
+  
   if (!doc) return next(GALLERY_NOT_FOUND);
   await Promise.all([doc.updateOne({ $set }), updateFiles(req, doc._id, 'Gallery', urls)]);
   res.json(createResponse(res));

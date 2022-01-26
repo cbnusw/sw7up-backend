@@ -25,7 +25,7 @@ const authenticate = asyncHandler(async (req, res, next) => {
     req.user = data;
     next();
   } catch (e) {
-    next(e.response && e.response.data || e);
+    next();
   }
 });
 

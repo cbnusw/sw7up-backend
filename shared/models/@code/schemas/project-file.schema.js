@@ -14,10 +14,6 @@ const schema = createSchema({
     index: true,
     default: null,
   },
-  temporary: {
-    type: Boolean,
-    default: false,
-  },
   creator: {
     // Ref UserInfo
     type: Schema.Types.ObjectId

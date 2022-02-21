@@ -4,7 +4,7 @@ const { join } = require('path');
 const options = require('./connection-options');
 const { toCollectionName, toModelName } = require('../helpers');
 
-module.exports = (uri, schemaPath, options = options) => {
+module.exports = (uri, schemaPath) => {
   const models = {};
 
   const db = mongoose.createConnection(uri, options);

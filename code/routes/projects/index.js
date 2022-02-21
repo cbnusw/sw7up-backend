@@ -22,27 +22,23 @@ const { createProjectFileUpload, createProjectFileResponse } = require('../proje
 
 const router = Router();
 
-// router.get('/', controller.getProjects);
-// router.get('/count', controller.countProjects);
-// router.get('/github', isAuthenticated, controller.getGithubProjects);
-// router.get('/me', isAuthenticated, controller.getMyProjects);
-// router.get('/:id', controller.getProject);
-
-// router.post('/', isAuthenticated, controller.addProject);
-// router.post('/github', isAuthenticated, controller.addGithubProject);
-
 router.get('/', controller.search);
 router.get('/count', controller.countProjects);
+router.get('/count', controller.countProjectsByDepartment);
 router.get('/meta/count', controller.countProjectMetaInfo);
+router.get('/meta/count/department', controller.countProjectMetaInfoByDepartment);
+router.get('/meta/count/grade-semester', controller.countProjectMetaInfoByGradeAndSemester);
 router.get('/me', isAuthenticated, controller.searchMyProjects);
 router.get('/me/count', isAuthenticated, controller.countMyProjects);
 router.get('/me/meta/count', isAuthenticated, controller.countMyProjectMetaInfo);
+router.get('/me/meta/count/grade-semester', isAuthenticated, controller.countMyProjectMetaInfoByGradeAndSemester);
 router.get('/github/:accountId', isAuthenticated, controller.getGithubProjects);
 router.get('/:id', controller.getProject);
 router.get('/:id/download', controller.downloadProject);
 router.get('/:id/source', controller.getProjectCodeText);
 
 router.post('/', isAuthenticated, controller.createProject);
+router.post('/:id/clone', isAuthenticated, controller.clonePublicProject);
 router.post('/id', isAuthenticated, controller.createProjectId);
 router.put('/:id', isAuthenticated, controller.updateProject);
 

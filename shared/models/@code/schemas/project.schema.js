@@ -2,6 +2,7 @@ const { Schema } = require('mongoose');
 const { createSchema } = require('../../helpers');
 const { searchPlugin } = require('../../plugins');
 const { toRef, toRegEx, toBoolean } = require('../../mappers');
+const { SEMESTERS } = require('../../../constants');
 
 const bannerSchema = createSchema({
   link: String,
@@ -77,12 +78,24 @@ const documentSchema = createSchema({
   }
 }, false);
 
+const approvalSchema = createSchema({
+  value: {
+    type: Boolean,
+    index: true,
+  },
+  date: {
+    type: Date,
+    index: true,
+  },
+  reason: String,
+}, false);
+
 const commitInfoSchema = createSchema({
   committer: {
     type: Schema.Types.ObjectId,
     ref: 'GithubAccount',
   },
-  commit: Number,
+  numOfCommits: Number,
 }, false);
 
 const repoSchema = createSchema({
@@ -111,9 +124,13 @@ const schema = createSchema({
   },
   grade: Number,
   year: Number,
+  department: {
+    type: String,
+    index: true,
+  },
   semester: {
     type: String,
-    enum: [null, '1학기', '여름학기', '2학기', '겨울학기'],
+    enum: [null, ...SEMESTERS],
     default: null,
   },
   description: {
@@ -150,9 +167,9 @@ const schema = createSchema({
   meta: [metaSchema],
   ossList: [ossSchema],
   documents: [documentSchema],
-  approvedAt: {
-    type: Date,
-    index: true,
+  approval: {
+    type: approvalSchema,
+    default: null,
   },
   creator: {
     type: Schema.Types.ObjectId,
@@ -174,7 +191,10 @@ schema.plugin(searchPlugin({
   populate: [
     { path: 'banners.file', model: 'ProjectFile ' },
     { path: 'creator', model: 'UserInfo' },
-    { path: 'team.member.github', model: 'GithubAccount' },
+    {
+      path: 'team.member.github', model: 'GithubAccount',
+      populate: [{ path: 'user', model: 'UserInfo' }]
+    },
     { path: 'team.member.joined', model: 'UserInfo' },
   ],
   mapper: {

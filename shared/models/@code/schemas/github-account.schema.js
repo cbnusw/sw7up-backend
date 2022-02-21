@@ -19,8 +19,16 @@ const schema = createSchema({
     index: true,
     default: null,
   },
-  createdAt: Date,
-  updatedAt: Date,
+  createdAt: {
+    type: Date,
+    default: null,
+  },
+  updatedAt: {
+    type: Date,
+    default: null,
+  },
+}, {
+  timestamps: false,
 });
 
 schema.index({ username: 1, user: 1 }, { unique: true });
@@ -35,7 +43,10 @@ schema.plugin(searchPlugin({
     user: toRef('UserInfo', {
       name: toRegEx,
     })
-  }
+  },
+  populate: [
+    { path: 'user', model: 'UserInfo' }
+  ]
 }));
 
 module.exports = schema;

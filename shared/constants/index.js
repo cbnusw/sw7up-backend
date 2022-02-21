@@ -1,3 +1,8 @@
+const operatorRoles = [
+  'admin',
+  'operator',
+];
+
 const notOperatorRoles = [
   'staff',    // 교직원(충북대 소속만)
   'student',  // 학생(충북대 소속만)
@@ -11,8 +16,7 @@ const access = [
 ];
 
 const roles = [
-  'admin',
-  'operator',
+  ...operatorRoles,
   ...notOperatorRoles,
 ];
 
@@ -56,6 +60,9 @@ const qnaCategories = [
   '2022 예비대학'
 ];
 
+const semesters = ['1학기', '여름학기', '2학기', '겨울학기'];
+
+exports.OPERATOR_ROLES = operatorRoles;
 exports.NOT_OPERATOR_ROLES = notOperatorRoles;
 exports.ROLES = roles;
 exports.PERMISSIONS = permissions;
@@ -65,3 +72,4 @@ exports.FILE_ACCESS = access;
 exports.NOTICE_ACCESS = access;
 exports.FILE_TYPES = fileTypes;
 exports.QNA_CATEGORIES = qnaCategories;
+exports.SEMESTERS = semesters;

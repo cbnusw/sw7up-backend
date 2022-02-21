@@ -14,7 +14,7 @@ const {
 } = require('../../../../shared/errors');
 
 
-const getQnAs = asyncHandler(async (req, res, next) => {
+const getQnAs = asyncHandler(async (req, res) => {
   const { query } = req;
   const documents = await Qna.search(query, null, [{ path: 'writer', model: UserInfo }]);
   res.json(createResponse(res, documents));
@@ -23,8 +23,6 @@ const getQnAs = asyncHandler(async (req, res, next) => {
 const getQnA = asyncHandler(async (req, res, next) => {
   const { params: { id }, body, user } = req;
   const { password } = body || {};
-
-  console.log(password);
 
   const doc = await Qna.findById(id)
     .populate({ path: 'writer', model: UserInfo })

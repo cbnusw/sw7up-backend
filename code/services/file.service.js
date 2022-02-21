@@ -43,7 +43,9 @@ const removeFiles = async (...ids) => await Promise.all(ids.map(removeFile));
 const updateFiles = async (project, ...ids) => {
   const files = await ProjectFile.find({ project });
   const inDB = files.map(file => String(file._id));
+  
   ids = ids.filter(id => !!id).map(id => String(id));
+  
   const deletions = difference(inDB, ids);
   const additions = difference(ids, inDB);
 

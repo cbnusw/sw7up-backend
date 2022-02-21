@@ -52,6 +52,7 @@ const errors = {
   CORRUPTION_REPORT_NOT_FOUND: [404, '찾을 수 없는 신고입니다.'],
   GALLERY_NOT_FOUND: [404, '찾을 수 없는 갤러리입니다.'],
   GITHUB_ACCOUNT_NOT_FOUND: [404, '찾을 수 없는 Github계정입니다.'],
+  LANGUAGE_FILTER_NOT_FOUND: [404, '찾을 수 없는 언어 필터입니다.'],
   LOCAL_PROJECT_NOT_FOUND: [404, '찾을 수 없는 로컬 프로젝트입니다.'],
   NOT_FOUND: [404, '찾을 수 없는 요청입니다.'],
   NOTICE_NOT_FOUND: [404, '찾을 수 없는 공지글입니다.'],

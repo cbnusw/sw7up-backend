@@ -1,4 +1,5 @@
 const asyncHandler = require('express-async-handler');
+const mime = require('mime');
 const { FILE_NOT_UPLOADED, PROJECT_ID_REQUIRED } = require('../../../shared/errors');
 const { ProjectFile } = require('../../../shared/models');
 const { createResponse } = require('../../../shared/utils/response');
@@ -25,7 +26,7 @@ const createProjectFileResponse = baseDir => asyncHandler(async (req, res) => {
   const document = await ProjectFile.create({
     path: `code-uploads/code/static/projects/${id}${baseDir ? '/' + baseDir : ''}${dirPath ? '/' + dirPath : ''}/${file.filename}`,
     name: file.originalname,
-    type: file.type,
+    type: file.type || mime.getType(file.originalname),
     size: file.size,
     temporary: true,
     creator: user.info,

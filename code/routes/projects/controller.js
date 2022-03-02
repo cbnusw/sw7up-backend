@@ -469,7 +469,7 @@ const removeProject = async (req, res) => {
   const document = await Project.findById(id);
   
   if (!document) throw PROJECT_NOT_FOUND;
-  if (!OPERATOR_ROLES.includes(user.role) && String(document.creator) !== String(user._id)) throw FORBIDDEN;
+  if (!OPERATOR_ROLES.includes(user.role) && String(document.creator) !== String(user.info)) throw FORBIDDEN;
   
   await Promise.all([document.deleteOne(), removeAllProjectFiles(document._id)]);
   

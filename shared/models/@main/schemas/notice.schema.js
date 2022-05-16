@@ -1,7 +1,7 @@
 const { Schema } = require('mongoose');
 const { createSchema } = require('../../helpers');
 const { searchPlugin } = require('../../plugins');
-const { to, toNumber, toRef, toRegEx } = require('../../mappers');
+const { to, toRef, toRegEx } = require('../../mappers');
 const { NOTICE_ACCESS, NOTICE_CATEGORIES } = require('../../../constants');
 
 const accessSchema = {
@@ -56,7 +56,6 @@ schema.statics.findByIdNo = function (no, category, cb) {
 schema.plugin(searchPlugin({
   sort: '-createdAt',
   mapper: {
-    no: toNumber,
     category: to,
     title: toRegEx,
     writer: toRef('UserInfo', {

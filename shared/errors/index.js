@@ -56,6 +56,7 @@ const errors = {
   LOCAL_PROJECT_NOT_FOUND: [404, '찾을 수 없는 로컬 프로젝트입니다.'],
   NOT_FOUND: [404, '찾을 수 없는 요청입니다.'],
   NOTICE_NOT_FOUND: [404, '찾을 수 없는 공지글입니다.'],
+  OVERSEAS_EDUCATION_NOT_FOUND: [404, '찾을 수 없는 해외교육글입니다.'],
   PRESS_RELEASE_NOT_FOUND: [404, '찾을 수 없는 보도 자료입니다.'],
   PROJECT_NOT_FOUND: [404, '찾을 수 없는 프로젝트입니다.'],
   PROJECT_FILE_NOT_FOUND: [404, '찾을 수 없는 프로젝트 파일입니다.'],

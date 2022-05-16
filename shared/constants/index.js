@@ -41,6 +41,7 @@ const fileTypes = [
   'CorruptionReport',
   'Gallery',
   'Notice',
+  'OverseasEducation',
   'PressRelease',
   'Resource',
 ];

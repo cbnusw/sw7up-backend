@@ -31,6 +31,7 @@ const errors = {
   USER_NAME_REQUIRED: [400, '사용자 이름이 필요합니다.'],
   USER_NOT_DELETED: [400, '삭제된 회원이 아닙니다.'],
   USER_PHONE_REQUIRED: [400, '사용자 연락처가 필요합니다.'],
+  USER_UNIVERSITY_REQUIRED: [400, '사용자 대학이 필요합니다'],
   WRITER_INFO_REQUIRED: [400, '작성자 정보가 필요합니다.'],
   YEAR_MONTH_REQUIRED: [400, '연월 정보가 필요합니다.'],
   GITHUB_ACCOUNT_USED: [400, '이미 등록된 Github 계정입니다.'],

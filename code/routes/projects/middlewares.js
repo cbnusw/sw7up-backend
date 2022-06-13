@@ -22,7 +22,6 @@ const createProjectFileResponse = baseDir => asyncHandler(async (req, res) => {
 
   const chunks = path.split('/').slice(3);
   const dirPath = chunks.join('/');
-
   const document = await ProjectFile.create({
     path: `code-uploads/code/static/projects/${id}${baseDir ? '/' + baseDir : ''}${dirPath ? '/' + dirPath : ''}/${file.filename}`,
     name: file.originalname,

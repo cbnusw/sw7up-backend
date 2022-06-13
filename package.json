@@ -28,7 +28,8 @@
     "dev:upload": "nodemon --watch shared --watch upload upload/index.js",
     "dev:code": "nodemon --watch shared --watch code code/index.js",
     "pm2:ls": "pm2 ls",
-    "clear:log": "rimraf logs"
+    "clear:log": "rimraf logs",
+    "migration": "node migrations/index.js"
   },
   "keywords": [],
   "author": "",

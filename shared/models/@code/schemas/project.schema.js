@@ -57,10 +57,22 @@ const teamSchema = createSchema({
 }, false);
 
 const metaSchema = createSchema({
-  language: String,
-  files: Number,
-  codes: Number,
-  comments: Number
+  language: {
+    type: String,
+    default: null,
+  },
+  files: {
+    type: Number,
+    default: 0,
+  },
+  codes: {
+    type: Number,
+    default: 0
+  },
+  comments: {
+    type: Number,
+    default: 0,
+  }
 }, false);
 
 const ossSchema = createSchema({
@@ -165,6 +177,14 @@ const schema = createSchema({
     default: null,
   },
   meta: [metaSchema],
+  
+  // 메타 정보가 업데이트 중인지 체크하기 위한 필드, 업데이트 중이라면 true
+  metaUpdating: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
+  
   ossList: [ossSchema],
   documents: [documentSchema],
   approval: {

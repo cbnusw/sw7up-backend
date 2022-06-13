@@ -295,7 +295,11 @@ const createProject = async (req, res) => {
   const { body, user } = req;
   
   convertBodyToProject(body);
-  const ids = [...getFileIdsFromProject(body), ...await moveTemporarySources(body)];
+  const ids = [
+    ...getFileIdsFromProject(body),
+    ...await moveTemporarySources(body)
+  ];
+  
   await addMeToTeam(body, user);
   
   body.creator = user.info;

@@ -3,7 +3,7 @@ const { createSchema } = require('../../helpers');
 const { searchPlugin } = require('../../plugins');
 const { to, toRegEx } = require('../../mappers');
 const roleSchema = require('./common/role.schema');
-const { CENTERS } = require('../../../constants');
+const { CENTERS, UNIVERSITIES } = require('../../../constants');
 
 const schema = createSchema({
   image: String,
@@ -41,6 +41,12 @@ const schema = createSchema({
     index: true,
     // required: true,
   },
+  university: {
+    type: String,
+    index: true,
+    trim: true,
+    enum: [...UNIVERSITIES, null],
+  },
   position: String,
   role: { ...roleSchema, index: true },
   user: {
@@ -64,6 +70,7 @@ schema.plugin(searchPlugin({
     email: toRegEx,
     phone: toRegEx,
     department: toRegEx,
+    university: toRegEx,
     role: to,
   }
 }));

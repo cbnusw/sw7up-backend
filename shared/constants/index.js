@@ -26,6 +26,18 @@ const permissions = [
   'qna',
 ];
 
+const universities = [
+  '충북대학교',
+  '한국교통대학교',
+  '건국대학교',
+  '서원대학교',
+  '청주대학교',
+  '공군사관학교',
+  '우석대학교',
+  '중원대학교',
+  '세명대학교'
+]
+
 const centers = [
   '사업지원팀',
   'SW전공교육센터',
@@ -75,3 +87,4 @@ exports.NOTICE_ACCESS = access;
 exports.FILE_TYPES = fileTypes;
 exports.QNA_CATEGORIES = qnaCategories;
 exports.SEMESTERS = semesters;
+exports.UNIVERSITIES = universities;

@@ -6,8 +6,8 @@ const { findImageUrlsFromHtml, updateFiles, removeFilesByUrls } = require('../..
 const { hasRoles } = require('../../../../shared/utils/permission');
 
 const getOverseasEducations = asyncHandler(async (req, res) => {
-  const documents = await OverseasEducation.search(req.query, null, [{ path: 'writer', model: UserInfo }]);
-  res.json(createResponse(res, documents));
+  const data = await OverseasEducation.search(req.query, null, [{ path: 'writer', model: UserInfo }]);
+  res.json(createResponse(res, data));
 });
 
 const getOverseasEducation = asyncHandler(async (req, res) => {

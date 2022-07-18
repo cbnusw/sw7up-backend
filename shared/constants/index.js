@@ -37,13 +37,14 @@ const centers = [
 ];
 
 const fileTypes = [
-  'UserInfo',
   'CorruptionReport',
   'Gallery',
   'Notice',
   'OverseasEducation',
   'PressRelease',
   'Resource',
+  'StudentActivity',
+  'UserInfo',
 ];
 
 const qnaCategories = [

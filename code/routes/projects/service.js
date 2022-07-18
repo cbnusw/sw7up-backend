@@ -132,7 +132,13 @@ const getFileIdFromPublicProject = project => {
   convert(project.source, sourceFiles);
   
   return [
-    ...project.banners.filter(banner => banner.file).map(banner => banner.file._id || banner.file), ...sourceFiles, ...project.documents.filter(document => document.file).map(document => document.file._id || document.file)
+    ...project.banners
+      .filter(banner => banner.file)
+      .map(banner => banner.file._id || banner.file),
+    ...sourceFiles,
+    ...project.documents
+      .filter(document => document.file)
+      .map(document => document.file._id || document.file)
   ];
 };
 

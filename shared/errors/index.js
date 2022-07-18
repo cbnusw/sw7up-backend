@@ -65,6 +65,7 @@ const errors = {
   QNA_NOT_FOUND: [404, '찾을 수 없는 Q&A입니다.'],
   REPLY_NOT_FOUND: [404, '찾을 수 없는 댓글입니다.'],
   RESOURCE_NOT_FOUND: [404, '찾을 수 없는 자료입니다.'],
+  STUDENT_ACTIVITY_NOT_FOUND: [404, '찾을 수 없는 학생활동사례입니다.'],
   USER_EMAIL_NOT_FOUND: [404, '가입되지 않은 이메일입니다.'],
   USER_INFO_NOT_FOUND: [404, '찾을 수 없는 사용자 정보입니다.'],
   USER_NOT_FOUND: [404, '찾을 수 없는 사용자입니다.'],

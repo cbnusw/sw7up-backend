@@ -1,71 +1,56 @@
-/**
- * 관련 Github APIs
- *  [Get a Repo]: 리파지터리 정보 가져오기
- *   - GET https://api.github.com/repos/{owner}/{repo}
- *   - Headers
- *     Accept: application/vnd.github.v3+json
- *  [Get commits]: 특정 리파지터리에 대한 커밋 정보 가져오기
- *   - GET https://api.github.com/repos/{owner}/{repo}/commits?per_page=100&page=1
- *   - Headers
- *     Accept: application/vnd.github.v3+json
- *  [Get My Repos]: 내 리파지터리 정보 가져오기(공개된 리파지터리만)
- *   - GET https://api.github.com/user/repos?per_page=100&page=1&type=public
- *   - Headers
- *     Accept: application/vnd.github.v3+json
- *     Authorization: token {위에서 발급받은 액세스 토큰}
- */
-
 const { Router } = require('express');
-const { isAuthenticated, isOperator } = require('../../../shared/middlewares/auth');
+const { isStudent, isAuthenticated } = require('../../../shared/middlewares/auth');
 const controller = require('./controller');
-const { createProjectFileUpload, createProjectFileResponse } = require('../projects/middlewares');
+const { createSingleUpload, createArrayUpload } = require('./middlewares');
 
 const router = Router();
 
-router.get('/', controller.search);
-router.get('/count', controller.countProjects);
-router.get('/count', controller.countProjectsByDepartment);
-router.get('/meta/count', controller.countProjectMetaInfo);
-router.get('/meta/count/department', controller.countProjectMetaInfoByDepartment);
-router.get('/meta/count/grade-semester', controller.countProjectMetaInfoByGradeAndSemester);
-router.get('/me', isAuthenticated, controller.searchMyProjects);
-router.get('/me/count', isAuthenticated, controller.countMyProjects);
-router.get('/me/meta/count', isAuthenticated, controller.countMyProjectMetaInfo);
-router.get('/me/meta/count/grade-semester', isAuthenticated, controller.countMyProjectMetaInfoByGradeAndSemester);
-router.get('/github/:accountId', isAuthenticated, controller.getGithubProjects);
+
+router.get('/', controller.getProjects);
+router.get('/me', isStudent, controller.getMyProjects);
+router.get('/none-source/me', isStudent, controller.getMyNoneSourceProjects);
+router.get('/source-code/:id', controller.getProjectSourceCode);
+router.get('/documents/:id/download', controller.downloadDocument);
 router.get('/:id', controller.getProject);
-router.get('/:id/download', controller.downloadProject);
-router.get('/:id/source', controller.getProjectCodeText);
+router.get('/:id/source/download', controller.downloadSourceFiles);
 
-router.post('/', isAuthenticated, controller.createProject);
-router.post('/:id/clone', isAuthenticated, controller.clonePublicProject);
-router.post('/id', isAuthenticated, controller.createProjectId);
-router.put('/:id', isAuthenticated, controller.updateProject);
-
-router.patch('/:id/approve', ...isOperator, controller.approve);
-
+router.post('/', isStudent, controller.createProject);
+router.post(
+  '/:id/source/*',
+  isStudent,
+  createSingleUpload('temp-sources', true),
+  controller.succssResponse
+);
 router.post(
   '/:id/banners',
-  isAuthenticated,
-  createProjectFileUpload('banners', false),
-  createProjectFileResponse('banners')
+  isStudent,
+  createArrayUpload('banners'),
+  controller.uploadBanners
 );
-
 router.post(
   '/:id/documents',
-  isAuthenticated,
-  createProjectFileUpload('documents', false),
-  createProjectFileResponse('documents')
+  isStudent,
+  createSingleUpload('documents'),
+  controller.addDocument,
 );
 
-router.post(
-  '/:id/sources/*',
-  isAuthenticated,
-  createProjectFileUpload('temp-sources'),
-  createProjectFileResponse('temp-sources')
-);
+router.patch('/:id/basic', isAuthenticated, controller.updateBasic);
+router.patch('/:id/source/apply-upload', isStudent, controller.applyUploadSourceFiles);
+router.patch('/:id/source/clone', isAuthenticated, controller.cloneSourceFiles);
+router.patch('/:id/banners/remove', isAuthenticated, controller.removeBanner);
+router.patch('/:id/source/remove', isAuthenticated, controller.removeSourceFiles);
+router.patch('/:id/banners/video/add', isAuthenticated, controller.addVideoBanner);
+router.patch('/:id/team/name', isAuthenticated, controller.updateTeamName);
+router.patch('/:id/team/joined/add', isAuthenticated, controller.addJoinedTeamMember);
+router.patch('/:id/team/joined/remove', isAuthenticated, controller.removeJoinedTeamMember);
+router.patch('/:id/team/github/add', isAuthenticated, controller.addGitHubTeamMembers);
+router.patch('/:id/team/github/remove', isAuthenticated, controller.removeGitHubTeamMember);
+router.patch('/:id/team/not-joined/add', isAuthenticated, controller.addNotJoinedTeamMember);
+router.patch('/:id/team/not-joined/remove', isAuthenticated, controller.removeNotJoinedTeamMember);
+router.patch('/:id/oss/add', isAuthenticated, controller.addOss);
+router.patch('/:id/oss/remove', isAuthenticated, controller.removeOss);
+router.patch('/:id/documents/remove', isAuthenticated, controller.removeDocument);
 
-router.delete('/:id', isAuthenticated, controller.removeProject);
-router.delete('/:id/temp-sources', isAuthenticated, controller.removeTemporarySources);
+router.delete('/:id/temp-sources', isStudent, controller.removeSourceTempDir);
 
 module.exports = router;

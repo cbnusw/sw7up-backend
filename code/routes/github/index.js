@@ -26,6 +26,7 @@ const router = Router();
 router.get('/me', isAuthenticated, controller.getMyGithubAccounts);
 router.get('/key', isAuthenticated, controller.getGithubKey);
 router.get('/account/:username', isAuthenticated, controller.getGithubAccount);
+router.get('/:accountId/repos', isAuthenticated, controller.getGithubRepos);
 
 router.post('/', isAuthenticated, controller.createGithubAccount);
 

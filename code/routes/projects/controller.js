@@ -1,512 +1,549 @@
 const archiver = require('archiver');
-const axios = require('axios');
 const asyncHandler = require('express-async-handler');
+const { promises, createWriteStream } = require('fs');
+const mime = require('mime');
 const { Types } = require('mongoose');
 const { join } = require('path');
-const { promises, existsSync, createWriteStream } = require('fs');
 const { ROOT_DIR } = require('../../../shared/env');
-const {
-  CAT_NOT_READ_SOURCE_FILE,
-  FORBIDDEN,
-  GITHUB_ACCOUNT_NOT_FOUND,
-  PROJECT_FILE_NOT_FOUND,
-  PROJECT_NOT_FOUND,
-} = require('../../../shared/errors');
-const { GithubAccount, LanguageFilter, Project, ProjectFile, UserInfo } = require('../../../shared/models');
+const { GithubAccount, Project, ProjectFile, UserInfo } = require('../../../shared/models');
 const { createResponse } = require('../../../shared/utils/response');
+const { toRegEx } = require('../../../shared/models/mappers');
 const {
-  analyzeSource,
-  clone,
-  getCommitInfo,
-  moveTemporarySources,
-  compareGradeAndSemester
-} = require('./service');
-const { removeAllProjectFiles, updateFiles } = require('../../services/file.service');
+  CAN_NOT_READ_SOURCE_FILE, FORBIDDEN, GITHUB_ACCOUNT_NOT_FOUND, PROJECT_FILE_NOT_FOUND, PROJECT_NOT_FOUND
+} = require('../../../shared/errors');
 const { OPERATOR_ROLES } = require('../../../shared/constants');
+const {
+  cloneSourceFilesToTempDir,
+  moveSourceCodesFromTempDir,
+  convertDirToEntries,
+  analyzeSource,
+  getCommitInfo,
+  getProjectSourceDir,
+  removeProjectSourceTempDir,
+  removeProjectSourceFiles,
+  removeFile
+} = require('./services');
 
-const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36';
-
-const getGithubProjects = async (req, res) => {
-  const { params: { accountId }, user } = req;
+async function createCountAndSearchPipelines (query, queryKeys) {
+  const { q, sort = '_id:-1', limit = 12 } = query;
+  const $match = {};
+  const $sort = {};
   
-  let repos = [];
-  let length = -1;
-  let page = 1;
+  delete query.q;
+  delete query.sort;
+  delete query.limit;
   
-  const account = await GithubAccount.findById(accountId);
+  Object.keys(query).forEach(key => {
+    $match[key] = query[key];
+  });
   
-  if (!account) throw GITHUB_ACCOUNT_NOT_FOUND;
-  if (String(account.user) !== String(user.info)) throw FORBIDDEN;
-  
-  const { accessToken } = account;
-  
-  while (repos.length !== length) {
-    length = repos.length;
-    const reposResponse = await axios.get('https://api.github.com/user/repos', {
-      headers: {
-        Accept: 'application/vnd.github.v3+json', Authorization: `token ${accessToken}`, 'User-Agent': USER_AGENT,
-      }, params: {
-        per_page: 100, page, type: 'public'
+  if (q && (queryKeys || []).length > 0) {
+    $match['$or'] = await Promise.all(queryKeys.map(async key => {
+      const filter = {};
+      if (key === 'creator') {
+        const $in = (await UserInfo.find({ name: toRegEx(q) }).select('_id').lean()).map(doc => doc._id);
+        filter[key] = { $in };
+      } else {
+        filter[key] = toRegEx(q);
       }
-    });
-    
-    const { data } = reposResponse;
-    
-    for (let repo of data) {
-      const project = await Project.findOne({ isPublic: true, 'repo.url': repo.clone_url });
       
-      if (!project) {
-        const username = repo.owner.login;
-        const commitInfo = await getCommitInfo(accessToken, repo);
-        let owner = await GithubAccount.findOne({ username });
-        
-        if (!owner) owner = await GithubAccount.create({ username });
-        
-        repos.push({
-          url: repo.clone_url,
-          fullName: repo.full_name,
-          name: repo.name,
-          description: repo.description,
-          size: repo.size,
-          owner,
-          commitInfo,
-          createdAt: repo.created_at,
-          updatedAt: repo.updated_at,
-        });
-      }
-    }
-    
-    page++;
+      return filter;
+    }));
   }
   
-  res.json(createResponse(res, repos));
-};
+  const count = [{ $match: { ...$match } }, { $count: 'total' }];
+  
+  const chunks = sort.split(':');
+  const [_sortKey, direction] = chunks;
+  let marker = chunks.slice(2).join(':');
+  if (marker) {
+    if (_sortKey === '_id') marker = new Types.ObjectId(marker);
+    console.log(typeof marker);
+    $match[_sortKey] = +direction === 1 ? { $gt: marker } : { $lt: marker };
+  }
+  $sort[_sortKey] = +direction;
+  
+  const search = [{ $match }, { $sort }, { $limit: +limit }];
+  
+  return [count, search];
+}
 
-const search = async (req, res) => {
+async function search (query, queryKeys = ['name', 'department', 'creator']) {
+  const [count, search] = await createCountAndSearchPipelines(query, queryKeys);
+  console.log(JSON.stringify(search[0], null, 2));
+  console.log(JSON.stringify(search[2], null, 2));
+  const { total } = (await Project.aggregate(count).allowDiskUse(true))[0] || { total: 0 };
+  let documents = await Project.aggregate(search).allowDiskUse(true);
+  documents = await Project.populate(documents, { path: 'creator', model: UserInfo });
+  documents = await Project.populate(documents, { path: 'banners.file', model: ProjectFile });
+  return { total, documents };
+}
+
+const successResponse = (req, res) => res.json(createResponse(res));
+
+const getProjects = async (req, res) => {
   const { query } = req;
-  const data = await Project.search(query);
+  const data = await search({ ...query, source: { $ne: null } });
+  console.log(JSON.stringify(data.documents.map(d => d._id), null, 2));
   res.json(createResponse(res, data));
 };
 
-const countProjects = async (req, res) => {
-  const { query } = req;
-  const count = await Project.countAll(query);
-  res.json(createResponse(res, count));
-};
-
-const countProjectsByDepartment = async (req, res) => {
-
-};
-
-const countProjectMetaInfo = async (req, res) => {
-  const { query: { isPublic, groupByLanguage, metaName } } = req;
-  const $match = {};
-  const $unwind = '$meta';
-  const $nin = (await LanguageFilter.find()).map(filter => filter.name);
-  const $group = { _id: null, 'count': { $sum: `$meta.${metaName}` } };
-  
-  if (isPublic === 'true' || isPublic === 'false') $match.isPublic = isPublic === 'true';
-  if (groupByLanguage === 'true') $group._id = { 'label': '$meta.language' };
-  
-  const data = await Project.aggregate([{ $match }, { $unwind }, { $match: { 'meta.language': { $nin } } }, { $group }]);
-  
-  if (groupByLanguage !== 'true') {
-    const { count } = data[0] || { count: 0 };
-    return res.json(createResponse(res, count));
-  } else if (data.length > 0) {
-    res.json(createResponse(res, data.map(item => {
-      const { _id: { label }, count } = item;
-      return { label, count };
-    })));
-  } else {
-    res.json(createResponse(res, []));
-  }
-};
-
-const countProjectMetaInfoByDepartment = async (req, res) => {
-  const { query: { isPublic, metaName } } = req;
-  const $match = { department: { $in: ['소프트웨어학과', '정보통신공학부', '컴퓨터공학과'] } };
-  const $unwind = '$meta';
-  const $nin = (await LanguageFilter.find()).map(filter => filter.name);
-  const $group = { _id: { 'meta': '$department' }, count: { $sum: `$meta.${metaName}` } };
-  if (isPublic === 'true' || isPublic === 'false') $match.isPublic = isPublic === 'true';
-  
-  const data = await Project.aggregate([{ $match }, { $unwind }, { $match: { 'meta.language': { $nin } } }, { $group }]);
-  res.json(createResponse(res, data.map(item => {
-    const { _id: { department }, count } = item;
-    return { department, count };
-  })));
-};
-
-const countProjectMetaInfoByGradeAndSemester = async (req, res) => {
-  const { query: { isPublic } } = req;
-  const $match = {};
-  const $unwind = '$meta';
-  const metaNames = ['files', 'codes', 'comments'];
-  const $nin = (await LanguageFilter.find()).map(filter => filter.name);
-  
-  if (isPublic === 'true' || isPublic === 'false') $match.isPublic = isPublic === 'true';
-  
-  let serieses = await Promise.all(metaNames.map(async name => {
-    const $group = { _id: { grade: '$grade', semester: '$semester' }, count: { $sum: `$meta.${name}` } };
-    return Project.aggregate([{ $match }, { $unwind }, { $match: { 'meta.language': { $nin } } }, { $group }]);
-  }));
-  
-  serieses = serieses.map(
-    series => series.map(item => {
-      const { _id: { grade, semester }, count } = item;
-      return { grade, semester, count };
-    }).sort(compareGradeAndSemester).map(series => ({
-      name: `${series.grade}학년 ${series.semester}`,
-      value: series.count
-    }))
-  );
-  
-  const data = metaNames.map((name, i) => {
-    return { name, series: serieses[i] };
-  });
-  
-  res.json(createResponse(res, data));
-};
-
-const searchMyProjects = async (req, res) => {
+const getMyProjects = async (req, res) => {
   const { query, user } = req;
-  const data = await Project.search(query, { creator: user.info });
+  const data = await search({ ...query, source: { $ne: null }, creator: new Types.ObjectId(user.info) }, ['name']);
+  
   res.json(createResponse(res, data));
 };
 
-const countMyProjects = async (req, res) => {
+const getMyNoneSourceProjects = async (req, res) => {
   const { query, user } = req;
-  const count = await Project.countAll(query, { creator: user.info });
-  res.json(createResponse(res, count));
-};
-
-const countMyProjectMetaInfo = async (req, res) => {
-  const { query: { isPublic, groupByLanguage, metaName }, user } = req;
-  const $match = { creator: Types.ObjectId(user.info) };
-  const $unwind = '$meta';
-  const $group = { _id: null, 'count': { $sum: `$meta.${metaName}` } };
-  const $nin = (await LanguageFilter.find()).map(filter => filter.name);
-  
-  if (isPublic === 'true' || isPublic === 'false') $match.isPublic = isPublic === 'true';
-  if (groupByLanguage === 'true') $group._id = { 'label': '$meta.language' };
-  
-  const data = await Project.aggregate([{ $match }, { $unwind }, { $match: { 'meta.language': { $nin } } }, { $group }]);
-  if (groupByLanguage !== 'true') {
-    const { count } = data[0] || { count: 0 };
-    return res.json(createResponse(res, count));
-  } else if (data.length > 0) {
-    res.json(createResponse(res, data.map(item => {
-      const { _id: { label }, count } = item;
-      return { label, count };
-    })));
-  } else {
-    res.json(createResponse(res, []));
-  }
-};
-
-const countMyProjectMetaInfoByGradeAndSemester = async (req, res) => {
-  const { query: { isPublic }, user } = req;
-  const $match = { creator: Types.ObjectId(user.info) };
-  const $unwind = '$meta';
-  const $nin = (await LanguageFilter.find()).map(filter => filter.name);
-  const metaNames = ['files', 'codes', 'comments'];
-  
-  if (isPublic === 'true' || isPublic === 'false') $match.isPublic = isPublic === 'true';
-  
-  let serieses = await Promise.all(metaNames.map(async name => {
-    const $group = { _id: { grade: '$grade', semester: '$semester' }, count: { $sum: `$meta.${name}` } };
-    return Project.aggregate([{ $match }, { $unwind }, { $match: { 'meta.language': { $nin } } }, { $group }]);
-  }));
-  
-  serieses = serieses.map(
-    series => series.map(item => {
-      const { _id: { grade, semester }, count } = item;
-      return { grade, semester, count };
-    }).sort(compareGradeAndSemester).map(series => ({
-      name: `${series.grade}학년 ${series.semester}`,
-      value: series.count
-    }))
-  );
-  
-  const data = metaNames.map((name, i) => {
-    return { name, series: serieses[i] };
-  });
+  const data = await search({ ...query, source: { $eq: null }, creator: new Types.ObjectId(user.info) }, ['name']);
   
   res.json(createResponse(res, data));
+};
+
+const getProjectSourceCode = async (req, res) => {
+  const { params: { id } } = req;
+  const file = await ProjectFile.findById(id);
+  if (!file) throw PROJECT_FILE_NOT_FOUND;
+  
+  try {
+    const path = join(ROOT_DIR, file.path);
+    const source = (await promises.readFile(path)).toString('utf-8');
+    res.json(createResponse(res, { name: file.name, path: file.path, source }));
+  } catch (err) {
+    throw CAN_NOT_READ_SOURCE_FILE;
+  }
 };
 
 const getProject = async (req, res) => {
   const { params: { id } } = req;
-  
-  const document = JSON.parse(JSON.stringify(await Project.findById(id)
+  const document = await Project.findById(id)
     .populate({ path: 'banners.file' })
     .populate({ path: 'documents.file' })
-    // .populate({ path: 'team.member.joined', model: UserInfo })
-    // .populate({ path: 'team.member.github', populate: { path: 'user', model: UserInfo } })
-    .populate({ path: 'creator', model: UserInfo })));
+    .populate({ path: 'repo.owner', populate: [{ path: 'user', model: UserInfo }] })
+    .populate({ path: 'repo.commitInfo.committer', populate: [{ path: 'user', model: UserInfo }] })
+    .populate({ path: 'team.member.joined', model: UserInfo })
+    .populate({ path: 'team.member.github', populate: [{ path: 'user', model: UserInfo }] })
+    .populate({ path: 'creator', model: UserInfo }).lean();
   
-  if (!document) throw PROJECT_NOT_FOUND;
-  
-  if (document.team) {
-    document.team.member.joined =
-      await Promise.all(document.team?.member?.joined?.map(id => UserInfo.findById(id)));
-    document.team.member.github =
-      await Promise.all(document.team?.member?.github.map(id => GithubAccount.findById(id).populate({
-        path: 'user',
-        model: UserInfo
-      })));
+  if (!document) {
+    throw PROJECT_NOT_FOUND;
   }
   
   res.json(createResponse(res, document));
 };
 
-const downloadProject = async (req, res) => {
+const downloadSourceFiles = async (req, res) => {
   const { params: { id } } = req;
-  const path = join(ROOT_DIR, `code-uploads/code/static/projects/${id}`);
-  const result = await promises.readdir(join(path, 'sources'));
-  const filename = result[0] ? `${result[0]}.zip` : 'source.zip';
-  const output = createWriteStream(join(path, filename));
+  const dir = getProjectSourceDir(id);
+  const basenames = await promises.readdir(dir);
+  const filename = `${basenames[0] ? basenames[0] : 'source'}.zip`;
+  const zipPath = join(dir, filename);
+  const output = createWriteStream(zipPath);
   const archive = archiver('zip');
   output.on('close', () => {
-    res.download(join(path, filename), filename);
+    res.download(zipPath, filename);
   });
-  archive.on('error', err => console.error(err));
+  archive.on('error', err => {
+    console.error(err);
+    res.status(500).json(err);
+  });
   archive.pipe(output);
-  archive.directory(join(path, 'sources'), false);
+  archive.directory(join(dir, basenames[0]), false);
   archive.finalize();
 };
 
-const getProjectCodeText = async (req, res) => {
+const downloadDocument = async (req, res) => {
   const { params: { id } } = req;
   const file = await ProjectFile.findById(id);
+  
   if (!file) throw PROJECT_FILE_NOT_FOUND;
-  try {
-    const source = (await promises.readFile(join(ROOT_DIR, file.path))).toString('utf-8');
-    res.json(createResponse(res, { name: file.name, path: file.path, source }));
-  } catch (err) {
-    throw CAT_NOT_READ_SOURCE_FILE;
-  }
+  
+  const path = join(ROOT_DIR, file.path);
+  
+  res.download(path, file.name);
 };
-
-const createProjectId = (req, res) => res.json(createResponse(res, Types.ObjectId()));
 
 const createProject = async (req, res) => {
   const { body, user } = req;
   
-  convertBodyToProject(body);
-  const ids = [
-    ...getFileIdsFromProject(body),
-    ...await moveTemporarySources(body)
-  ];
-  
-  await addMeToTeam(body, user);
-  
   body.creator = user.info;
   
-  const document = await Project.create(body);
+  const project = await Project.create(body);
   
-  await updateFiles(document._id, ...ids);
-  
-  const sourceDir = join(ROOT_DIR, `code-uploads/code/static/projects/${document._id}/sources`);
-  
-  document.meta = await analyzeSource(sourceDir);
-  await document.save();
-  
-  res.json(createResponse(res, document, 201));
+  res.json(createResponse(res, project));
 };
 
-const clonePublicProject = async (req, res) => {
-  const { params: { id }, body: { url, account }, user } = req;
-  const githubAccount = await GithubAccount.findById(account);
+const uploadBanners = async (req, res) => {
+  const { params: { id }, files, user } = req;
+  const project = await Project.findById(id);
   
-  if (!githubAccount) throw GITHUB_ACCOUNT_NOT_FOUND;
-  if (String(githubAccount.user) !== String(user.info)) throw FORBIDDEN;
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
   
-  const entries = await clone(id, url, user.info);
+  const banners = await Promise.all(files.map(file => ProjectFile.create({
+    path: `code-uploads/code/static/projects/${id}/banners/${file.filename}`,
+    name: file.originalname,
+    type: file.type || mime.getType(file.originalname),
+    project: id,
+    fileType: 'banner',
+    size: file.size,
+    creator: project.creator,
+  })));
   
-  res.json(createResponse(res, entries));
+  project.banners = [...(project.banners || []), ...banners.map(banner => ({ file: banner._id }))];
+  await project.save();
+  
+  res.json(createResponse(res, banners, 201));
 };
 
-const updateProject = async (req, res) => {
-  const { params: { id }, body: $set, user } = req;
+const addDocument = async (req, res) => {
+  const { params: { id }, file, body: { name }, user } = req;
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== user.info) throw FORBIDDEN;
+  
+  const document = {
+    name, file: await ProjectFile.create({
+      path: `code-uploads/code/static/projects/${id}/documents/${file.filename}`,
+      name: file.originalname,
+      type: file.type || mime.getType(file.originalname),
+      project: id,
+      fileType: 'document',
+      size: file.size,
+      creator: project.creator,
+    }),
+  };
+  
+  project.documents = project.documents || [];
+  project.documents.push({ name: document.name, file: document.file._id });
+  await project.save();
+  
+  res.json(createResponse(res, document));
+};
+
+const updateBasic = async (req, res) => {
+  const { params: { id }, body, user } = req;
   
   const document = await Project.findById(id);
+  
   if (!document) throw PROJECT_NOT_FOUND;
   if (!OPERATOR_ROLES.includes(user.role) && String(document.creator) !== user.info) throw FORBIDDEN;
   
-  convertBodyToProject($set);
-  const ids = [...getFileIdsFromProject($set), ...await moveTemporarySources($set)];
-  await addMeToTeam($set, user);
-  const sourceDir = join(ROOT_DIR, `code-uploads/code/static/projects/${document._id}/sources`);
-  $set.meta = await analyzeSource(sourceDir);
-  await Promise.all([
-    document.updateOne({ $set }), updateFiles(document._id, ...ids)
-  ]);
+  const { name, department, grade, year, semester, description, projectType, subject, ownProject } = body;
+  const $set = { name, department, grade, year, semester, description, projectType, subject, ownProject };
+  
+  await document.updateOne({ $set });
+  
   res.json(createResponse(res));
 };
 
-const approve = async (req, res) => {
-  const { params: { id }, body: { value, reason } } = req;
-  const document = await Project.findById(id);
-  if (!document) throw PROJECT_NOT_FOUND;
-  document.approval = { value, reason, date: new Date() };
-  await document.save();
-  res.json(createResponse(res, document.approval));
-};
-
-async function addMeToTeam (body, user) {
-  if (body.team) {
-    if (body.isPublic) {
-      const githubAccount = await GithubAccount.findOne({ user: user.info });
-      if (!githubAccount) throw GITHUB_ACCOUNT_NOT_FOUND;
-      body.team.member.github = body.team.github || [];
-      const me = body.team.member.github.find(m => String(m) === String(githubAccount._id));
-      if (!me) body.team.member.github.push(githubAccount._id);
-    } else {
-      body.team.member.joined = body.team.member.joined || [];
-      const me = body.team.member.joined?.find(m => String(m) === String(user.info));
-      if (!me) body.team.member.joined.push(user.info);
-    }
-  }
-}
-
-function convertBodyToProject (body) {
-  const { team, repo } = body;
-  
-  if (team?.member?.github) team.member.github = team.member.github.map(m => m._id || m);
-  if (team?.member?.joined) team.member.joined = team.member.joined.map(m => m._id || m);
-  if (repo?.commitInfo) repo.commitInfo = repo.commitInfo.map(info => {
-    info.committer = info.committer?._id || info.committer;
-    return info;
-  });
-  
-  body.banners = (body.banners || []).map(banner => {
-    if (banner.file) banner.file = banner.file._id || banner.file;
-    return banner;
-  });
-  
-  body.documents = (body.documents || []).map(document => {
-    document.file = document.file && document.file._id || document.file;
-    return document;
-  });
-}
-
-function getFileIdsFromProject (project) {
-  return [
-    ...project.banners.map(banner => banner.file?._id || banner.file).filter(id => !!id),
-    ...project.documents.map(document => document.file._id || document.file).filter(id => !!id)
-  ];
-}
-
-// const createLocalProject = async (req, res) => {
-//   const { body, user } = req;
-//   const project = convertBodyToLocalProject(body);
-//   const ids = getFileIdFromPublicProject(project);
-//
-//   if (project.team) {
-//     const me = project.team.members.find(member => String(member) === String(user.info));
-//     if (!me) project.team.members.push(user.info);
-//   }
-//
-//   project.creator = user.info;
-//
-//   const document = await LocalProject.create(project);
-//   await updateFiles(document._id, 'LocalProject', ...ids);
-//   const sourcePath = join(ROOT_DIR, `code-uploads/code/static/projects/${document._id}`);
-//   document.meta = await analyzeSource(sourcePath);
-//   await document.save();
-//
-//   res.json(createResponse(res, document, 201));
-// };
-
-// const createPublicProject = async (req, res) => {
-//   const { body, user } = req;
-//   body.creator = user.info;
-//   body.team = (body.commits || []).map(item => item.member.user).filter(user => !!user);
-//
-//   convertBodyToPublicProject(body);
-//
-//   const ids = getFileIdFromPublicProject(project);
-//   const sourceDir = join(ROOT_DIR, `code-uploads/code/static/projects/${document._id}`);
-//   body.sourceDir = sourceDir;
-//
-//   await clone(body.repo.url, sourceDir);
-//   const source = [];
-//   await tranceFiles(sourceDir, source);
-//   project.source = source;
-//   project.sourceDir = sourceDir;
-//   project.meta = await analyzeSource(sourceDir);
-//
-//   const document = await PublicProject.create(project);
-//   await updateFiles(document._id, 'PublicProject', ...ids);
-//   res.json(createResponse(res, document, 201));
-// };
-
-// const updateLocalProject = async (req, res) => {
-//   const { params: { id }, body, user } = req;
-//
-//   const document = await LocalProject.findById(id);
-//
-//   if (!document) throw LOCAL_PROJECT_NOT_FOUND;
-//   if (String(document.creator) !== String(user.info)) throw FORBIDDEN;
-//
-//   const $set = convertBodyToLocalProject(body);
-//   const ids = getFileIdFromLocalProject($set);
-//
-//   if ($set.team) {
-//     const me = $set.team.members.find(member => String(member) === String(user.info));
-//     if (!me) $set.team.members.push(user.info);
-//   }
-//
-//   await Promise.all([document.updateOne({ $set }), updateFiles(document._id, 'LocalProject', ...ids)]);
-//
-//   const sourcePath = join(ROOT_DIR, `code-uploads/code/static/projects/${document._id}`);
-//   document.meta = await analyzeSource(sourcePath);
-//   await document.save();
-//
-//   res.json(createResponse(res));
-// };
-
-const removeProject = async (req, res) => {
+const applyUploadSourceFiles = async (req, res) => {
   const { params: { id }, user } = req;
-  const document = await Project.findById(id);
+  const project = await Project.findById(id);
   
-  if (!document) throw PROJECT_NOT_FOUND;
-  if (!OPERATOR_ROLES.includes(user.role) && String(document.creator) !== String(user.info)) throw FORBIDDEN;
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (String(project.creator) !== String(user.info)) throw FORBIDDEN;
   
-  await Promise.all([document.deleteOne(), removeAllProjectFiles(document._id)]);
+  await moveSourceCodesFromTempDir(id);
+  
+  const entries = [];
+  const dir = getProjectSourceDir(id);
+  await convertDirToEntries(id, dir, entries, user.info);
+  project.repo = null;
+  project.isPublic = false;
+  project.source = entries;
+  await project.save();
+  await analyzeSource(id);
+  res.json(createResponse(res));
+};
+
+const cloneSourceFiles = async (req, res) => {
+  const { params: { id }, body: { repo, account }, user } = req;
+  const githubAccount = await GithubAccount.findById(account).lean();
+  const project = await Project.findById(id);
+  
+  if (!githubAccount) throw GITHUB_ACCOUNT_NOT_FOUND;
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (String(githubAccount.user) !== String(user.info)) throw FORBIDDEN;
+  if (String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  await cloneSourceFilesToTempDir(id, repo.url);
+  await moveSourceCodesFromTempDir(id);
+  const entries = [];
+  const dir = getProjectSourceDir(id);
+  const [_, commitInfo] = await Promise.all([
+    convertDirToEntries(id, dir, entries, project.creator), getCommitInfo(githubAccount.accessToken, repo.fullName)
+  ]);
+  repo.commitInfo = commitInfo;
+  project.isPublic = true;
+  project.repo = repo;
+  project.source = entries;
+  await project.save();
+  await analyzeSource(id);
+  res.json(createResponse(res));
+};
+
+const removeSourceFiles = async (req, res) => {
+  const { params: { id }, body, user } = req;
+  
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  await removeProjectSourceFiles(id, body);
+  const dir = getProjectSourceDir(id);
+  const entries = [];
+  await convertDirToEntries(id, dir, entries, project.creator);
+  project.source = entries;
+  await project.save();
+  await analyzeSource(id);
+  res.json(createResponse(res));
+};
+
+const addVideoBanner = async (req, res) => {
+  const { params: { id }, body: { link }, user } = req;
+  
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  project.banners.push({ link });
+  await project.save();
   
   res.json(createResponse(res));
 };
 
-const removeTemporarySources = async (req, res) => {
-  const { params: { id } } = req;
-  const tempDir = join(ROOT_DIR, `code-uploads/code/static/projects/${id}/temp-sources`);
-  if (existsSync(tempDir)) await promises.rm(tempDir, { recursive: true, force: true });
-  await ProjectFile.deleteMany({ _id: id, temporary: true });
+const updateTeamName = async (req, res) => {
+  const { params: { id }, body: { name }, user } = req;
+  
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  project.team = { ...project.team, name };
+  await project.save();
+  
   res.json(createResponse(res));
 };
 
-exports.getGithubProjects = asyncHandler(getGithubProjects);
-exports.search = asyncHandler(search);
-exports.countProjects = asyncHandler(countProjects);
-exports.countProjectsByDepartment = asyncHandler(countProjectsByDepartment);
-exports.countProjectMetaInfo = asyncHandler(countProjectMetaInfo);
-exports.countProjectMetaInfoByDepartment = asyncHandler(countProjectMetaInfoByDepartment);
-exports.countProjectMetaInfoByGradeAndSemester = asyncHandler(countProjectMetaInfoByGradeAndSemester);
-exports.searchMyProjects = asyncHandler(searchMyProjects);
-exports.countMyProjects = asyncHandler(countMyProjects);
-exports.countProjectMetaInfo = asyncHandler(countProjectMetaInfo);
-exports.countMyProjectMetaInfo = asyncHandler(countMyProjectMetaInfo);
-exports.countMyProjectMetaInfoByGradeAndSemester = asyncHandler(countMyProjectMetaInfoByGradeAndSemester);
+const addJoinedTeamMember = async (req, res) => {
+  const { params: { id }, body: { memberId }, user } = req;
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  project.team = { ...project.team };
+  project.team.member = { ...project.team.member };
+  project.team.member.joined = [...(project.team.member.joined || [])];
+  
+  if (!project.team.member.joined.find(m => String(m._id) === String(memberId))) {
+    project.team.member.joined.push(memberId);
+    await project.save();
+  }
+  
+  res.json(createResponse(res));
+};
+
+const removeJoinedTeamMember = async (req, res) => {
+  const { params: { id }, body: { memberId }, user } = req;
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  project.team = { ...project.team };
+  project.team.member = { ...project.team.member };
+  project.team.member.joined = [...(project.team.member.joined || [])];
+  
+  const index = project.team.member.joined.findIndex(m => String(m._id) === String(memberId));
+  if (index !== -1) {
+    project.team.member.joined.splice(index, 1);
+    await project.save();
+  }
+  
+  res.json(createResponse(res));
+};
+
+const addGitHubTeamMembers = async (req, res) => {
+  const { params: { id }, user } = req;
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  project.team = { ...project.team };
+  project.team.member = { ...project.team.member };
+  
+  project.team.member.github = (project.repo.commitInfo || []).map(info => info.committer);
+  await project.save();
+  
+  res.json(createResponse(res));
+};
+
+const removeGitHubTeamMember = async (req, res) => {
+  const { params: { id }, body: { memberId }, user } = req;
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  project.team = { ...project.team };
+  project.team.member = { ...project.team.member };
+  project.team.member.github = [...(project.team.member.github || [])];
+  
+  const index = project.team.member.github.findIndex(m => String(m._id) === String(memberId));
+  if (index !== -1) {
+    project.team.member.github.splice(index, 1);
+    await project.save();
+  }
+  
+  res.json(createResponse(res));
+};
+
+const addNotJoinedTeamMember = async (req, res) => {
+  const { params: { id }, body: { member }, user } = req;
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  project.team = { ...project.team };
+  project.team.member = { ...project.team.member };
+  project.team.member.notJoined = [...(project.team.member.notJoined || [])];
+  if (!project.team.member.notJoined.find(m => m.school === member.school && m.no === member.no)) {
+    project.team.member.notJoined.push(member);
+    await project.save();
+  }
+  
+  res.json(createResponse(res));
+};
+
+const removeNotJoinedTeamMember = async (req, res) => {
+  const { params: { id }, body: { index }, user } = req;
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  project.team = { ...project.team };
+  project.team.member = { ...project.team.member };
+  project.team.member.notJoined = [...(project.team.member.notJoined || [])];
+  project.team.member.notJoined.splice(index, 1);
+  await project.save();
+  
+  res.json(createResponse(res));
+};
+
+const addOss = async (req, res) => {
+  const { params: { id }, body: { name, link, license, description }, user } = req;
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  project.ossList = project.ossList || [];
+  project.ossList.push({ name, link, license, description });
+  await project.save();
+  
+  res.json(createResponse(res));
+};
+
+const removeOss = async (req, res) => {
+  const { params: { id }, body: { index }, user } = req;
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  project.ossList.splice(index, 1);
+  await project.save();
+  
+  res.json(createResponse(res));
+};
+
+const removeDocument = async (req, res) => {
+  const { params: { id }, body: { index }, user } = req;
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  const fileId = project.documents[index].file;
+  
+  project.documents.splice(index, 1);
+  await Promise.all([removeFile(id, fileId), project.save()]);
+  
+  res.json(createResponse(res));
+};
+
+const removeSourceTempDir = async (req, res) => {
+  const { params: { id }, user } = req;
+  const project = await Project.findById(id).lean();
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  await removeProjectSourceTempDir(id);
+  res.json(createResponse(res));
+};
+
+const removeBanner = async (req, res) => {
+  const { params: { id }, body: { index }, user } = req;
+  
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  const promises = [];
+  const banner = project.banners[index];
+  
+  if (banner && banner.file) {
+    promises.push(removeFile(id, banner.file));
+  }
+  
+  if (banner) {
+    project.banners.splice(index, 1);
+    promises.push(project.save());
+  }
+  
+  await Promise.all(promises);
+  
+  res.json(createResponse(res));
+};
+
+exports.succssResponse = successResponse;
+exports.getProjects = asyncHandler(getProjects);
+exports.getMyProjects = asyncHandler(getMyProjects);
+exports.getMyNoneSourceProjects = asyncHandler(getMyNoneSourceProjects);
+exports.getProjectSourceCode = asyncHandler(getProjectSourceCode);
+exports.downloadDocument = asyncHandler(downloadDocument);
 exports.getProject = asyncHandler(getProject);
-exports.downloadProject = asyncHandler(downloadProject);
-exports.getProjectCodeText = asyncHandler(getProjectCodeText);
-exports.createProjectId = createProjectId;
+exports.downloadSourceFiles = asyncHandler(downloadSourceFiles);
 exports.createProject = asyncHandler(createProject);
-exports.clonePublicProject = asyncHandler(clonePublicProject);
-exports.updateProject = asyncHandler(updateProject);
-exports.approve = asyncHandler(approve);
-exports.removeProject = asyncHandler(removeProject);
-exports.removeTemporarySources = asyncHandler(removeTemporarySources);
+exports.uploadBanners = asyncHandler(uploadBanners);
+exports.addDocument = asyncHandler(addDocument);
+exports.updateBasic = asyncHandler(updateBasic);
+exports.applyUploadSourceFiles = asyncHandler(applyUploadSourceFiles);
+exports.cloneSourceFiles = asyncHandler(cloneSourceFiles);
+exports.removeSourceFiles = asyncHandler(removeSourceFiles);
+exports.addVideoBanner = asyncHandler(addVideoBanner);
+exports.updateTeamName = asyncHandler(updateTeamName);
+exports.addJoinedTeamMember = asyncHandler(addJoinedTeamMember);
+exports.removeJoinedTeamMember = asyncHandler(removeJoinedTeamMember);
+exports.addGitHubTeamMembers = asyncHandler(addGitHubTeamMembers);
+exports.removeGitHubTeamMember = asyncHandler(removeGitHubTeamMember);
+exports.addNotJoinedTeamMember = asyncHandler(addNotJoinedTeamMember);
+exports.removeNotJoinedTeamMember = asyncHandler(removeNotJoinedTeamMember);
+exports.addOss = asyncHandler(addOss);
+exports.removeOss = asyncHandler(removeOss);
+exports.removeDocument = asyncHandler(removeDocument);
+exports.removeSourceTempDir = asyncHandler(removeSourceTempDir);
+exports.removeBanner = asyncHandler(removeBanner);

@@ -8,7 +8,7 @@ const createError = err => {
 
 const errors = {
   // 400 Errors
-  CAT_NOT_READ_SOURCE_FILE: [400, '소스 파일을 읽을 수 없습니다.'],
+  CAN_NOT_READ_SOURCE_FILE: [400, '소스 파일을 읽을 수 없습니다.'],
   EMAIL_USED: [400, '이미 사용하고 있는 이메일입니다.'],
   FILE_NOT_UPLOADED: [400, '파일 업로드에 실패했습니다.'],
   INVALID_NEWSLETTER_FILE: [400, '올바르지 않은 뉴스레터 파일입니다.'],

@@ -55,9 +55,8 @@ const searchPlugin = ({ defaultCondition, mapper, populate, select, sort }) => s
     additionalPopulate = additionalPopulate || [];
 
     ['page', 'limit', 'sort'].forEach(k => delete condition[k]);
-
     condition = await conditionFactory({ defaultCondition, condition, forcedCondition, mapper });
-
+    
     const query = this.find(condition);
 
     if (select || additionalSelect) query.select(`${select} ${additionalSelect}`.trim());

@@ -10,7 +10,7 @@ const getProjectLanguages = async (req, res) => {
   ];
   if (filter === 'true') {
     const $nin = (await LanguageFilter.find()).map(filter => filter.name);
-    aggregate.push({ '$meta.language': { $nin } });
+    aggregate.push({ $match: { 'meta.language': { $nin } } });
   }
   
   aggregate.push({ $group: { _id: { 'language': '$meta.language' }, 'count': { $sum: '$meta.files' } } });
@@ -22,6 +22,7 @@ const getProjectLanguages = async (req, res) => {
     count: item.count
   })).sort((l1, l2) => l1.language < l2.language ? -1 : 1);
   
+  // res.json(createResponse(res, data));
   res.json(createResponse(res, result));
 };
 

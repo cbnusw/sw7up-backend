@@ -87,7 +87,28 @@ const users = [
       department: '컴퓨터공학과'
     }
   },
-
+  {
+    no: '2020002001',
+    password: 'asdf',
+    role: 'student',
+    info: {
+      name: '이찬혁',
+      email: 'lch@test.com',
+      phone: '01044445556',
+      department: '정보통신공학부'
+    }
+  },
+  {
+    no: '2020003001',
+    password: 'asdf',
+    role: 'student',
+    info: {
+      name: '조희진',
+      email: 'jhj@test.com',
+      phone: '01044445557',
+      department: '소프트웨어학과'
+    }
+  },
   // 교직원 계정
   {
     no: '123451',

@@ -9,6 +9,10 @@ const schema = createSchema({
   name: String,
   size: Number,
   type: String,
+  fileType: {
+    type: String,
+    enum: ['source', 'document', 'banner'],
+  },
   project: {
     type: Schema.Types.ObjectId,
     index: true,

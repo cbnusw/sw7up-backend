@@ -19,8 +19,14 @@ const mentoSchema = createSchema({
 }, false);
 
 const subjectSchema = createSchema({
-  name: String,
-  professor: String,
+  name: {
+    type: String,
+    default: null,
+  },
+  professor: {
+    type: String,
+    default: null,
+  },
   mentoList: [mentoSchema]
 }, false);
 
@@ -29,6 +35,10 @@ const ownProjectSchema = createSchema({
     type: String,
     enum: ['공모전', '경진대회', '동아리', '기타'],
     default: '기타'
+  },
+  professor: {
+    type: String,
+    default: null,
   },
   mentoList: [mentoSchema]
 }, false);
@@ -136,6 +146,10 @@ const schema = createSchema({
   },
   grade: Number,
   year: Number,
+  school: {
+    type: String,
+    index: true,
+  },
   department: {
     type: String,
     index: true,
@@ -170,7 +184,10 @@ const schema = createSchema({
     index: true,
     default: false,
   },
-  repo: repoSchema,
+  repo: {
+    type: repoSchema,
+    default: null,
+  },
   sourceDir: String,
   source: {
     type: Schema.Types.Mixed,

@@ -31,8 +31,7 @@ const getCommitInfo = async (accessToken, repo) => {
     const { data } = response;
     usernames = [
       ...usernames,
-      ...
-        data.map(d => d.author?.login || d.commit?.author?.name).filter(username => !!username)
+      ...data.map(d => d.author?.login || d.commit?.author?.name).filter(username => !!username)
     ];
     page++;
   }

@@ -2,5 +2,12 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/code_uploads/code/static/projects/63088985ba75cae8c0e03f97/sources/angular-todo-ex" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/code_uploads/code/static/projects/63088985ba75cae8c0e03f97/sources/auth-starter" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/code_uploads/code/static/projects/63088985ba75cae8c0e03f97/sources/com.my.todo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/code_uploads/code/static/projects/63088985ba75cae8c0e03f97/sources/finger.stt" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/code_uploads/code/static/projects/63088985ba75cae8c0e03f97/sources/judge-api-server" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/code_uploads/code/static/projects/63088985ba75cae8c0e03f97/sources/nest-todo-ex" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/code_uploads/code/static/projects/63088985ba75cae8c0e03f97/sources/sw-judger" vcs="Git" />
   </component>
 </project>

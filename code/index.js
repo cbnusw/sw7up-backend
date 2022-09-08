@@ -1,7 +1,7 @@
 const http = require('http');
 const app = require('./app');
 const { debug, error } = require('./utils/logger');
-const { CODE_APP_PORT: PORT, IS_DEV } = require('../shared/env');
+const { CODE_APP_PORT: PORT } = require('../shared/env');
 const runSchedulers = require('./schedulers');
 
 const server = http.createServer(app);

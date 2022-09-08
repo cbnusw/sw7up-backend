@@ -66,7 +66,7 @@ const getCommitInfo = async (accessToken, fullName) => {
 
 const removeProjectSourceTempDir = async projectId => {
   const tempDir = getProjectSourceTempDir(projectId);
-  if (existsSync(tempDir)) await promises.rm(temDir, { recursive: true, force: true });
+  if (existsSync(tempDir)) await promises.rm(tempDir, { recursive: true, force: true });
 };
 
 const removeProjectSourceDir = async projectId => {
@@ -83,7 +83,7 @@ const removeFile = async (projectId, fileId) => {
   
   if (String(file.project) === String(projectId)) {
     const path = join(ROOT_DIR, file.path);
-  
+    
     await Promise.all([
       file.deleteOne(),
       existsSync(path) && promises.rm(path)
@@ -98,6 +98,13 @@ const removeSourceFiles = async (projectId, fileIds) => {
     ProjectFile.deleteMany({ _id: { $in: files.map(file => file._id) } }),
     ...filePaths.map(async path => existsSync(path) && await promises.rm(path))
   ]);
+};
+
+const removeProjectDir = async (projectId) => {
+  const projectDir = getProjectDir(projectId);
+  const _promises = [ProjectFile.deleteMany({ project: projectId })];
+  if (existsSync(projectDir)) _promises.push(promises.rm(projectDir, { recursive: true, force: true }));
+  await Promise.all(_promises);
 };
 
 const cloneSourceCodesToTempDir = async (projectId, repoUrl) => {
@@ -234,5 +241,6 @@ exports.convertDirToEntries = convertDirToEntries;
 exports.analyzeSource = analyzeSource;
 exports.removeFile = removeFile;
 exports.removeSourceFiles = removeSourceFiles;
+exports.removeProjectDir = removeProjectDir;
 exports.getCommitInfo = getCommitInfo;
 exports.removeProjectSourceFiles = removeProjectSourceFiles;

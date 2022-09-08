@@ -21,7 +21,7 @@ const {
   getProjectSourceDir,
   removeProjectSourceTempDir,
   removeProjectSourceFiles,
-  removeFile
+  removeFile, removeProjectDir
 } = require('./services');
 
 async function createCountAndSearchPipelines (query, queryKeys) {
@@ -58,7 +58,6 @@ async function createCountAndSearchPipelines (query, queryKeys) {
   let marker = chunks.slice(2).join(':');
   if (marker) {
     if (_sortKey === '_id') marker = new Types.ObjectId(marker);
-    console.log(typeof marker);
     $match[_sortKey] = +direction === 1 ? { $gt: marker } : { $lt: marker };
   }
   $sort[_sortKey] = +direction;
@@ -70,8 +69,6 @@ async function createCountAndSearchPipelines (query, queryKeys) {
 
 async function search (query, queryKeys = ['name', 'department', 'creator']) {
   const [count, search] = await createCountAndSearchPipelines(query, queryKeys);
-  console.log(JSON.stringify(search[0], null, 2));
-  console.log(JSON.stringify(search[2], null, 2));
   const { total } = (await Project.aggregate(count).allowDiskUse(true))[0] || { total: 0 };
   let documents = await Project.aggregate(search).allowDiskUse(true);
   documents = await Project.populate(documents, { path: 'creator', model: UserInfo });
@@ -84,7 +81,6 @@ const successResponse = (req, res) => res.json(createResponse(res));
 const getProjects = async (req, res) => {
   const { query } = req;
   const data = await search({ ...query, source: { $ne: null } });
-  console.log(JSON.stringify(data.documents.map(d => d._id), null, 2));
   res.json(createResponse(res, data));
 };
 
@@ -318,6 +314,31 @@ const addVideoBanner = async (req, res) => {
   res.json(createResponse(res));
 };
 
+const removeBanner = async (req, res) => {
+  const { params: { id }, body: { index }, user } = req;
+  
+  const project = await Project.findById(id);
+  
+  if (!project) throw PROJECT_NOT_FOUND;
+  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  
+  const promises = [];
+  const banner = project.banners[index];
+  
+  if (banner && banner.file) {
+    promises.push(removeFile(id, banner.file));
+  }
+  
+  if (banner) {
+    project.banners.splice(index, 1);
+    promises.push(project.save());
+  }
+  
+  await Promise.all(promises);
+  
+  res.json(createResponse(res));
+};
+
 const updateTeamName = async (req, res) => {
   const { params: { id }, body: { name }, user } = req;
   
@@ -494,29 +515,18 @@ const removeSourceTempDir = async (req, res) => {
   res.json(createResponse(res));
 };
 
-const removeBanner = async (req, res) => {
-  const { params: { id }, body: { index }, user } = req;
-  
+const removeProject = async (req, res) => {
+  const { params: { id }, user } = req;
   const project = await Project.findById(id);
   
   if (!project) throw PROJECT_NOT_FOUND;
-  if (!OPERATOR_ROLES.includes(user.role) && String(project.creator) !== String(user.info)) throw FORBIDDEN;
+  if (String(project.creator) !== String(user.info)) throw FORBIDDEN;
   
-  const promises = [];
-  const banner = project.banners[index];
-  
-  if (banner && banner.file) {
-    promises.push(removeFile(id, banner.file));
-  }
-  
-  if (banner) {
-    project.banners.splice(index, 1);
-    promises.push(project.save());
-  }
-  
-  await Promise.all(promises);
+  await project.deleteOne();
+  removeProjectDir(id);
   
   res.json(createResponse(res));
+  
 };
 
 exports.succssResponse = successResponse;
@@ -535,6 +545,7 @@ exports.applyUploadSourceFiles = asyncHandler(applyUploadSourceFiles);
 exports.cloneSourceFiles = asyncHandler(cloneSourceFiles);
 exports.removeSourceFiles = asyncHandler(removeSourceFiles);
 exports.addVideoBanner = asyncHandler(addVideoBanner);
+exports.removeBanner = asyncHandler(removeBanner);
 exports.updateTeamName = asyncHandler(updateTeamName);
 exports.addJoinedTeamMember = asyncHandler(addJoinedTeamMember);
 exports.removeJoinedTeamMember = asyncHandler(removeJoinedTeamMember);
@@ -546,4 +557,4 @@ exports.addOss = asyncHandler(addOss);
 exports.removeOss = asyncHandler(removeOss);
 exports.removeDocument = asyncHandler(removeDocument);
 exports.removeSourceTempDir = asyncHandler(removeSourceTempDir);
-exports.removeBanner = asyncHandler(removeBanner);
+exports.removeProject = asyncHandler(removeProject);

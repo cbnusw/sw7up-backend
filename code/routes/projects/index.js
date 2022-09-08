@@ -51,6 +51,7 @@ router.patch('/:id/oss/add', isAuthenticated, controller.addOss);
 router.patch('/:id/oss/remove', isAuthenticated, controller.removeOss);
 router.patch('/:id/documents/remove', isAuthenticated, controller.removeDocument);
 
+router.delete('/:id', isAuthenticated, controller.removeProject);
 router.delete('/:id/temp-sources', isStudent, controller.removeSourceTempDir);
 
 module.exports = router;

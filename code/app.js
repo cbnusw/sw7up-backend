@@ -9,6 +9,7 @@ const router = require('./routes');
 const app = express();
 
 app.set('logDir', LOG_DIR);
+app.disable('x-powered-by');
 middleware(app);
 app.get('/code/static/*', express.static(join(ROOT_DIR, 'code-uploads')));
 app.use(router);

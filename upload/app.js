@@ -21,6 +21,7 @@ const {
 const app = express();
 
 app.set('logDir', LOG_DIR);
+app.disable('x-powered-by');
 middleware(app, [
   [
     '/',

@@ -8,6 +8,7 @@ const router = require('./routes');
 const app = express();
 
 app.set('logDir', LOG_DIR);
+app.disable('x-powered-by');
 middleware(app);
 app.use(router);
 app.use(notFound);

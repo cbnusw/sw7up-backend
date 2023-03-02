@@ -100,6 +100,7 @@ const getProjectList = async (req, res) => {
         acc[1] += cur[1];
         acc[2] += cur[2];
         acc[3].push(cur[3]);
+        return acc;
       }, [0, 0, 0, []]);
     const notFilteredMeta = meta
       .map(item => [item.files, item.codes, item.comments, item.language])
@@ -108,6 +109,7 @@ const getProjectList = async (req, res) => {
         acc[1] += cur[1];
         acc[2] += cur[2];
         acc[3].push(cur[3]);
+        return acc;
       }, [0, 0, 0, []]);
   
     const subjectName = projectType

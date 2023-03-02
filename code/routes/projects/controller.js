@@ -5,7 +5,7 @@ const mime = require('mime');
 const { Types } = require('mongoose');
 const { join } = require('path');
 const { ROOT_DIR } = require('../../../shared/env');
-const { GithubAccount, Project, ProjectFile, UserInfo } = require('../../../shared/models');
+const { GithubAccount, LanguageFilter, Project, ProjectFile, UserInfo } = require('../../../shared/models');
 const { createResponse } = require('../../../shared/utils/response');
 const { toRegEx } = require('../../../shared/models/mappers');
 const {
@@ -21,7 +21,8 @@ const {
   getProjectSourceDir,
   removeProjectSourceTempDir,
   removeProjectSourceFiles,
-  removeFile, removeProjectDir
+  removeFile,
+  removeProjectDir
 } = require('./services');
 
 async function createCountAndSearchPipelines (query, queryKeys) {
@@ -81,6 +82,57 @@ const successResponse = (req, res) => res.json(createResponse(res));
 const getProjects = async (req, res) => {
   const { query } = req;
   const data = await search({ ...query, source: { $ne: null } });
+  res.json(createResponse(res, data));
+};
+
+const getProjectList = async (req, res) => {
+  const filters = (await LanguageFilter.find().select('name').lean()).map(f => f.name);
+  const projects = await Project.find().sort({ createdAt: 1 }).lean();
+  const data = [];
+  for (let project of projects) {
+    const user = await UserInfo.findById(project.creator);
+    const { name, school, department, year, grade, semester, createdAt, projectType, subject, ownProject, meta } = project;
+    const filteredMeta = meta
+      .filter(item => filters.include(item.language))
+      .map(item => [item.files, item.codes, item.comments, item.language])
+      .reduce((acc, cur) => {
+        acc[0] += cur[0];
+        acc[1] += cur[1];
+        acc[2] += cur[2];
+        acc[3].push(cur[3]);
+      }, [0, 0, 0, []]);
+    const notFilteredMeta = meta
+      .map(item => [item.files, item.codes, item.comments, item.language])
+      .reduce((acc, cur) => {
+        acc[0] += cur[0];
+        acc[1] += cur[1];
+        acc[2] += cur[2];
+        acc[3].push(cur[3]);
+      }, [0, 0, 0, []]);
+  
+    const subjectName = projectType
+      ? (projectType === '교과목프로젝트' ? (subject ? subject.name : '-') : (ownProject ? ownProject.type : '-'))
+      : '-';
+  
+    data.push([
+      name || '-',        // 프로젝트 이름
+      school || '-',      // 소속 학교
+      department || '-',  // 소속 학과
+      user.no || '-',     // 학번
+      user.name || '-',   // 학생 이름
+      year || '-',        // 수행 년도
+      grade || '-',       // 수행 학년
+      semester || '-',    // 수행 학기
+      projectType || '-', // 프로젝트 유형
+      subjectName || '-', // 교과목명/자체프로젝트 유형
+      createdAt || '-',   // 등록일
+      ...filteredMeta.slice(0, 3),    // 등록된 언어의 파일수, 코드라인수, 주석수
+      filteredMeta[3].join(', '),     // 등록된 언어 중 사용한 언어
+      ...notFilteredMeta.slice(0, 3), // 전체 언어의 파일수, 코드라인수, 주석수
+      notFilteredMeta[3].join(', '),  // 전체 언어 중 사용한 언어
+      meta
+    ]);
+  }
   res.json(createResponse(res, data));
 };
 
@@ -531,6 +583,7 @@ const removeProject = async (req, res) => {
 
 exports.succssResponse = successResponse;
 exports.getProjects = asyncHandler(getProjects);
+exports.getProjectList = asyncHandler(getProjectList);
 exports.getMyProjects = asyncHandler(getMyProjects);
 exports.getMyNoneSourceProjects = asyncHandler(getMyNoneSourceProjects);
 exports.getProjectSourceCode = asyncHandler(getProjectSourceCode);

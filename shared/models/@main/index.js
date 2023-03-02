@@ -9,4 +9,3 @@ const models = createDB(URL, join(__dirname, 'schemas'), {
 });
 
 module.exports = models;
-``

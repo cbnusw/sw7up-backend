@@ -6,9 +6,9 @@ const { toCollectionName, toModelName } = require('../helpers');
 
 module.exports = (uri, schemaPath) => {
   const models = {};
-
+  
   const db = mongoose.createConnection(uri, options);
-
+  
   readdirSync(schemaPath)
     .filter(file => /\.schema\.js$/.test(file))
     .forEach(file => {

@@ -93,7 +93,7 @@ const getProjectList = async (req, res) => {
     const user = await UserInfo.findById(project.creator);
     const { name, school, department, year, grade, semester, createdAt, projectType, subject, ownProject, meta } = project;
     const filteredMeta = meta
-      .filter(item => filters.include(item.language))
+      .filter(item => filters.includes(item.language))
       .map(item => [item.files, item.codes, item.comments, item.language])
       .reduce((acc, cur) => {
         acc[0] += cur[0];

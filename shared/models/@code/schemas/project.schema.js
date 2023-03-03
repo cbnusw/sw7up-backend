@@ -21,10 +21,12 @@ const mentoSchema = createSchema({
 const subjectSchema = createSchema({
   name: {
     type: String,
+    index: true,
     default: null,
   },
   professor: {
     type: String,
+    index: true,
     default: null,
   },
   mentoList: [mentoSchema]
@@ -144,8 +146,6 @@ const schema = createSchema({
     type: String,
     index: true,
   },
-  grade: Number,
-  year: Number,
   school: {
     type: String,
     index: true,
@@ -154,10 +154,18 @@ const schema = createSchema({
     type: String,
     index: true,
   },
-  semester: {
+  grade: Number,  // 수행 학년
+  year: Number,   // 수행 연도
+  semester: {     // 수행 학기
     type: String,
     enum: [null, ...SEMESTERS],
     default: null,
+  },
+  // 수행 시기 (수행연도-수행학기순번), 수행 학기는 1학기는 0, 여름학기는 1, 2학기는 2, 겨울학기는 3
+  // 예시 수행 연도가 2022년이고 수행학기가 여름학기라면 '2022-1'
+  performedAt: {
+    type: String,
+    index: true,
   },
   description: {
     type: String,

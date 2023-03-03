@@ -11,7 +11,7 @@ const { toRegEx } = require('../../../shared/models/mappers');
 const {
   CAN_NOT_READ_SOURCE_FILE, FORBIDDEN, GITHUB_ACCOUNT_NOT_FOUND, PROJECT_FILE_NOT_FOUND, PROJECT_NOT_FOUND
 } = require('../../../shared/errors');
-const { OPERATOR_ROLES } = require('../../../shared/constants');
+const { OPERATOR_ROLES, SEMESTERS } = require('../../../shared/constants');
 const {
   cloneSourceFilesToTempDir,
   moveSourceCodesFromTempDir,
@@ -85,13 +85,82 @@ const getProjects = async (req, res) => {
   res.json(createResponse(res, data));
 };
 
+const _createMatchPipeline = async query => {
+  const {
+    createdStart,
+    createdEnd,
+    performedStart,
+    performedEnd,
+    creatorName,
+    creatorNo,
+    school,
+    department,
+    projectType,
+    subjectName,
+    professor,
+  } = query;
+  const $match = {};
+  
+  if (createdStart) $match.createdAt = { $gte: createdStart };
+  if (createdEnd) $match.createdAt ? $match.createdAt.$lte = createdEnd : $match.createdAt = { $lte: createdEnd };
+  if (performedStart) $match.performedAt = { $gte: performedStart };
+  if (performedEnd) $match.performedAt ? $match.performedAt.$lte = performedEnd : $match.performedAt = { $lte: performedEnd };
+  if (!creatorNo && creatorName) {
+    const $in = (await UserInfo.find({ name: creatorName }).select('_id').lean()).map(user => user._id);
+    $match.creator = { $in };
+  }
+  if (creatorNo) $match.creator = (await UserInfo.findOne({ no: creatorNo }).select(_id).lean())._id;
+  if (school) $match.school = school;
+  if (department) $match.department = department;
+  if (projectType) $match.projectType = projectType;
+  if (subjectName) $match['subject.name'] = toRegEx(subjectName);
+  if (professor) $match.$or = [
+    { 'subject.professor': { $regex: toRegEx(professor) } }, { 'ownProject.professor': { $regex: toRegEx(professor) } }
+  ];
+  return [$match];
+};
+
+const _createSortPipeline = query => {
+  const { sort } = query;
+  if (sort) {
+    const $sort = {};
+    const chunks = sort.split(',');
+    chunks.forEach(chunk => {
+      const { property, direction } = chunk.split('::');
+      $sort[property] = +direction;
+      return [{ $sort }];
+    });
+  }
+  return [];
+};
+
+const _createPagePipeline = query => {
+  const { limit = 100, skip = 0 } = query;
+  return [{ $skip: +skip }, { $limit: +limit }];
+};
+
+const _searchProjectList = async query => {
+  const match = _createMatchPipeline(query);
+  const sort = _createSortPipeline(query);
+  const page = _createPagePipeline(query);
+  const searchPipeline = [...match, ...sort, ...page];
+  const countPipeline = [...match, { $count: 'total' }];
+  const { total } = await Project.aggregate(countPipeline).allowDiskUse(true)[0] || { total: 0 };
+  let documents = await Project.aggregate(searchPipeline).allowDiskUse(true);
+  documents = await Project.populate(documents, { path: 'creator', model: UserInfo });
+  return { total, documents };
+};
+
 const getProjectList = async (req, res) => {
+  
   const filters = (await LanguageFilter.find().select('name').lean()).map(f => f.name);
-  const projects = await Project.find().sort({ createdAt: 1 }).lean();
-  const data = [];
-  for (let project of projects) {
-    const user = await UserInfo.findById(project.creator);
-    const { name, school, department, year, grade, semester, createdAt, projectType, subject, ownProject, meta } = project;
+  const data = await _searchProjectList(req.query);
+  for (let i in data.documents) {
+    const project = data.documents[i];
+    const {
+      name, school, department, year, grade, semester, createdAt, projectType, subject, ownProject, meta, creator
+    } = project;
+    
     const filteredMeta = meta
       .filter(item => filters.includes(item.language))
       .map(item => [item.files, item.codes, item.comments, item.language])
@@ -111,29 +180,27 @@ const getProjectList = async (req, res) => {
         acc[3].push(cur[3]);
         return acc;
       }, [0, 0, 0, []]);
-  
-    const subjectName = projectType
-      ? (projectType === '교과목프로젝트' ? (subject ? subject.name : '-') : (ownProject ? ownProject.type : '-'))
-      : '-';
-  
-    data.push([
-      name || '-',        // 프로젝트 이름
-      school || '-',      // 소속 학교
-      department || '-',  // 소속 학과
-      user.no || '-',     // 학번
-      user.name || '-',   // 학생 이름
-      year || '-',        // 수행 년도
-      grade || '-',       // 수행 학년
-      semester || '-',    // 수행 학기
-      projectType || '-', // 프로젝트 유형
-      subjectName || '-', // 교과목명/자체프로젝트 유형
-      createdAt || '-',   // 등록일
+    
+    const subjectName = projectType ? (projectType === '교과목프로젝트' ? (subject ? subject.name : '-') : (ownProject ? ownProject.type : '-')) : '-';
+    
+    data.documents[i] = [
+      name || '-',          // 프로젝트 이름
+      school || '-',        // 소속 학교
+      department || '-',    // 소속 학과
+      creator.no || '-',    // 학번
+      creator.name || '-',  // 학생 이름
+      year || '-',          // 수행 년도
+      grade || '-',         // 수행 학년
+      semester || '-',      // 수행 학기
+      projectType || '-',   // 프로젝트 유형
+      subjectName || '-',   // 교과목명/자체프로젝트 유형
+      createdAt || '-',     // 등록일
       ...filteredMeta.slice(0, 3),    // 등록된 언어의 파일수, 코드라인수, 주석수
       filteredMeta[3].join(', '),     // 등록된 언어 중 사용한 언어
       ...notFilteredMeta.slice(0, 3), // 전체 언어의 파일수, 코드라인수, 주석수
       notFilteredMeta[3].join(', '),  // 전체 언어 중 사용한 언어
       meta
-    ]);
+    ];
   }
   res.json(createResponse(res, data));
 };
@@ -219,6 +286,10 @@ const createProject = async (req, res) => {
   const { body, user } = req;
   
   body.creator = user.info;
+  body.performedAt = `${body.year}-${SEMESTERS.indexOf(body.semester)}`;
+  if (body.subject?.name) body.subject.name = body.subject.name.replace(/\s/g, '');
+  if (body.subject?.professor) body.subject.professor = body.subject.professor(/\s+/g, ' ').trim();
+  if (body.ownProject?.professor) body.ownProject.professor = body.ownProject.professor(/\s+/g, ' ').trim();
   
   const project = await Project.create(body);
   
@@ -283,7 +354,14 @@ const updateBasic = async (req, res) => {
   if (!OPERATOR_ROLES.includes(user.role) && String(document.creator) !== user.info) throw FORBIDDEN;
   
   const { name, department, grade, year, semester, description, projectType, subject, ownProject } = body;
-  const $set = { name, department, grade, year, semester, description, projectType, subject, ownProject };
+  const performedAt = `${year}-${SEMESTERS.indexOf(semester)}`;
+  
+  if (subject?.name) subject.name = subject.name.replace(/\s/g, '');
+  if (subject?.name) subject.name = subject.name.replace(/\s/g, '');
+  if (subject?.professor) subject.professor = subject.professor(/\s+/g, ' ').trim();
+  if (ownProject?.professor) ownProject.professor = ownProject.professor(/\s+/g, ' ').trim();
+  
+  const $set = { name, department, grade, year, semester, performedAt, description, projectType, subject, ownProject };
   
   await document.updateOne({ $set });
   

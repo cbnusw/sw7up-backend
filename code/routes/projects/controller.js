@@ -89,6 +89,8 @@ const _createMatchPipeline = async query => {
   const {
     createdStart,
     createdEnd,
+    gradeStart,
+    gradeEnd,
     performedStart,
     performedEnd,
     creatorName,
@@ -103,6 +105,8 @@ const _createMatchPipeline = async query => {
   
   if (createdStart) $match.createdAt = { $gte: createdStart };
   if (createdEnd) $match.createdAt ? $match.createdAt.$lte = createdEnd : $match.createdAt = { $lte: createdEnd };
+  if (gradeStart) $match.grade = { $gte: +gradeStart };
+  if (gradeEnd) $match.grade ? $match.grade.$lte = +gradeEnd : $match.grade = { $lte: +gradeEnd };
   if (performedStart) $match.performedAt = { $gte: performedStart };
   if (performedEnd) $match.performedAt ? $match.performedAt.$lte = performedEnd : $match.performedAt = { $lte: performedEnd };
   if (!creatorNo && creatorName) {

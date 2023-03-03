@@ -115,7 +115,7 @@ const _createMatchPipeline = async query => {
   if (projectType) $match.projectType = projectType;
   if (subjectName) $match['subject.name'] = toRegEx(subjectName);
   if (professor) $match.$or = [
-    { 'subject.professor': { $regex: toRegEx(professor) } }, { 'ownProject.professor': { $regex: toRegEx(professor) } }
+    { 'subject.professor': toRegEx(professor) }, { 'ownProject.professor': toRegEx(professor) }
   ];
   return [{ $match }];
 };

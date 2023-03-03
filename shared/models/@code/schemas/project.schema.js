@@ -202,6 +202,12 @@ const schema = createSchema({
     enum: [null, ...SEMESTERS],
     default: null,
   },
+  semesterIndex: {
+    type: Number,
+    enum: [null, 0, 1, 2, 3],
+    index: true,
+    default: null,
+  },
   // 수행 시기 (수행연도-수행학기순번), 수행 학기는 1학기는 0, 여름학기는 1, 2학기는 2, 겨울학기는 3
   // 예시 수행 연도가 2022년이고 수행학기가 여름학기라면 '2022-1'
   performedAt: {

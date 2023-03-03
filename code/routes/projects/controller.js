@@ -111,7 +111,7 @@ const _createMatchPipeline = async query => {
     const $in = (await UserInfo.find({ name: creatorName }).select('_id').lean()).map(user => user._id);
     $match.creator = { $in };
   }
-  if (creatorNo) $match.creator = (await UserInfo.findOne({ no: creatorNo }).select(_id).lean())._id;
+  if (creatorNo) $match.creator = (await UserInfo.findOne({ no: creatorNo }).select('_id').lean())._id;
   if (school) $match.school = school;
   if (department) $match.department = department;
   if (projectType) $match.projectType = projectType;
@@ -147,7 +147,6 @@ const _searchProjectList = async query => {
   const page = _createPagePipeline(query);
   const searchPipeline = [...match, ...sort, ...page];
   const countPipeline = [...match, { $count: 'total' }];
-  console.log('QUERY:::', JSON.stringify(searchPipeline, null, 2));
   const { total } = (await Project.aggregate(countPipeline).allowDiskUse(true))[0] || { total: 0 };
   let documents = await Project.aggregate(searchPipeline).allowDiskUse(true);
   documents = await Project.populate(documents, { path: 'creator', model: UserInfo });

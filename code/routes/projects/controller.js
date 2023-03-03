@@ -128,7 +128,7 @@ const _createSortPipeline = query => {
     const chunks = sort.split(',');
     const $sort = {};
     chunks.forEach(chunk => {
-      const { property, direction } = chunk.split('::');
+      const [property, direction] = chunk.split('::');
       $sort[property] = +direction;
     });
     return [{ $sort }];

@@ -125,13 +125,13 @@ const _createMatchPipeline = async query => {
 const _createSortPipeline = query => {
   const { sort } = query;
   if (sort) {
-    const $sort = {};
     const chunks = sort.split(',');
+    const $sort = {};
     chunks.forEach(chunk => {
       const { property, direction } = chunk.split('::');
       $sort[property] = +direction;
-      return [{ $sort }];
     });
+    return [{ $sort }];
   }
   return [];
 };

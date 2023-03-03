@@ -13,19 +13,30 @@ const bannerSchema = createSchema({
 }, false);
 
 const mentoSchema = createSchema({
-  name: String,
-  organization: String,
-  position: String,
+  name: {
+    type: String,
+    trim: true,
+  },
+  organization: {
+    type: String,
+    trim: true,
+  },
+  position: {
+    type: String,
+    trim: true
+  },
 }, false);
 
 const subjectSchema = createSchema({
   name: {
     type: String,
+    trim: true,
     index: true,
     default: null,
   },
   professor: {
     type: String,
+    trim: true,
     index: true,
     default: null,
   },
@@ -40,16 +51,30 @@ const ownProjectSchema = createSchema({
   },
   professor: {
     type: String,
+    trim: true,
+    index: true,
     default: null,
   },
   mentoList: [mentoSchema]
 }, false);
 
 const notJoinedMemberSchema = createSchema({
-  no: String,
-  school: String,
-  name: String,
-  department: String,
+  no: {
+    type: String,
+    trim: true
+  },
+  school: {
+    type: String,
+    trim: true,
+  },
+  name: {
+    type: String,
+    trim: true
+  },
+  department: {
+    type: String,
+    trim: true
+  },
 }, false);
 
 const memberSchema = createSchema({
@@ -64,7 +89,10 @@ const memberSchema = createSchema({
 }, false);
 
 const teamSchema = createSchema({
-  name: String,
+  name: {
+    type: String,
+    trim: true
+  },
   member: memberSchema,
 }, false);
 
@@ -88,14 +116,26 @@ const metaSchema = createSchema({
 }, false);
 
 const ossSchema = createSchema({
-  name: String,
-  link: String,
-  license: String,
+  name: {
+    type: String,
+    trim: true,
+  },
+  link: {
+    type: String,
+    trim: true,
+  },
+  license: {
+    type: String,
+    trim: true
+  },
   description: String,
 }, false);
 
 const documentSchema = createSchema({
-  name: String,
+  name: {
+    type: String,
+    trim: true,
+  },
   file: {
     type: Schema.Types.ObjectId,
     ref: 'ProjectFile'
@@ -144,6 +184,7 @@ const schema = createSchema({
   banners: [bannerSchema],
   name: {
     type: String,
+    trim: true,
     index: true,
   },
   school: {

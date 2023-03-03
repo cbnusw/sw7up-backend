@@ -290,9 +290,10 @@ const createProject = async (req, res) => {
   
   body.creator = user.info;
   body.performedAt = `${body.year}-${SEMESTERS.indexOf(body.semester)}`;
+  if (body.name) body.name = body.name.replace(/\s+/g, ' ');
   if (body.subject?.name) body.subject.name = body.subject.name.replace(/\s/g, '');
-  if (body.subject?.professor) body.subject.professor = body.subject.professor(/\s+/g, ' ').trim();
-  if (body.ownProject?.professor) body.ownProject.professor = body.ownProject.professor(/\s+/g, ' ').trim();
+  if (body.subject?.professor) body.subject.professor = body.subject.professor(/\s+/g, ' ');
+  if (body.ownProject?.professor) body.ownProject.professor = body.ownProject.professor(/\s+/g, ' ');
   
   const project = await Project.create(body);
   
@@ -361,10 +362,10 @@ const updateBasic = async (req, res) => {
   
   if (subject?.name) subject.name = subject.name.replace(/\s/g, '');
   if (subject?.name) subject.name = subject.name.replace(/\s/g, '');
-  if (subject?.professor) subject.professor = subject.professor(/\s+/g, ' ').trim();
-  if (ownProject?.professor) ownProject.professor = ownProject.professor(/\s+/g, ' ').trim();
+  if (subject?.professor) subject.professor = subject.professor(/\s+/g, ' ');
+  if (ownProject?.professor) ownProject.professor = ownProject.professor(/\s+/g, ' ');
   
-  const $set = { name, department, grade, year, semester, performedAt, description, projectType, subject, ownProject };
+  const $set = { name: name.replace(/\s+/g, ' '), department, grade, year, semester, performedAt, description, projectType, subject, ownProject };
   
   await document.updateOne({ $set });
   

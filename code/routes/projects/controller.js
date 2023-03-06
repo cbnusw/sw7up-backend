@@ -181,7 +181,7 @@ const getProjectList = async (req, res) => {
   for (let i in data.documents) {
     const project = data.documents[i];
     const {
-      name, school, department, year, grade, semester, createdAt, projectType, subject, ownProject, meta, creator
+      _id, name, school, department, year, grade, semester, createdAt, projectType, subject, ownProject, meta, creator
     } = project;
     
     const filteredMeta = meta
@@ -207,6 +207,7 @@ const getProjectList = async (req, res) => {
     const subjectName = projectType ? (projectType === '교과목프로젝트' ? (subject ? subject.name : '-') : (ownProject ? ownProject.type : '-')) : '-';
     
     data.documents[i] = [
+      _id,
       name || '-',          // 프로젝트 이름
       school || '-',        // 소속 학교
       department || '-',    // 소속 학과

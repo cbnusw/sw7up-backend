@@ -365,7 +365,7 @@ const updateBasic = async (req, res) => {
   if (subject?.name) subject.name = subject.name.replace(/\s/g, '');
   if (subject?.name) subject.name = subject.name.replace(/\s/g, '');
   if (subject?.professor) subject.professor = subject.professor(/\s+/g, ' ');
-  if (ownProject?.professor) ownProject.professor = ownProject.professor(/\s+/g, ' ');
+  if (ownProject?.professor) ownProject.professor = ownProject.professor.replace(/\s+/g, ' ');
   
   const $set = {
     name: name.replace(/\s+/g, ' '),

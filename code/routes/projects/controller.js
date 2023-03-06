@@ -86,6 +86,7 @@ const getProjects = async (req, res) => {
 };
 
 const _createMatchPipeline = async query => {
+  console.log(query);
   
   const MAJORS = [
     '소프트웨어학과',

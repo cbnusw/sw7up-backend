@@ -293,7 +293,7 @@ const createProject = async (req, res) => {
   body.performedAt = `${body.year}-${SEMESTERS.indexOf(body.semester)}`;
   if (body.name) body.name = body.name.replace(/\s+/g, ' ');
   if (body.subject?.name) body.subject.name = body.subject.name.replace(/\s/g, '');
-  if (body.subject?.professor) body.subject.professor = body.subject.professor(/\s+/g, ' ');
+  if (body.subject?.professor) body.subject.professor = body.subject.professor.replace(/\s+/g, ' ');
   if (body.ownProject?.professor) body.ownProject.professor = body.ownProject.professor.replace(/\s+/g, ' ');
   if (body.semester) body.semesterIndex = SEMESTERS.indexOf(body.semester);
   
@@ -364,7 +364,7 @@ const updateBasic = async (req, res) => {
   
   if (subject?.name) subject.name = subject.name.replace(/\s/g, '');
   if (subject?.name) subject.name = subject.name.replace(/\s/g, '');
-  if (subject?.professor) subject.professor = subject.professor(/\s+/g, ' ');
+  if (subject?.professor) subject.professor = subject.professor.replace(/\s+/g, ' ');
   if (ownProject?.professor) ownProject.professor = ownProject.professor.replace(/\s+/g, ' ');
   
   const $set = {

@@ -95,9 +95,10 @@ const _createMatchPipeline = async query => {
     creatorName,
     creatorNo,
     school,
-    department,
+    departments,
     projectType,
     subjectName,
+    ownProjectTypes,
     professor,
   } = query;
   const $match = {};
@@ -112,10 +113,11 @@ const _createMatchPipeline = async query => {
     $match.creator = { $in };
   }
   if (creatorNo) $match.creator = (await UserInfo.findOne({ no: creatorNo }).select('_id').lean())._id;
-  if (school) $match.school = school;
-  if (department) $match.department = department;
+  if (school) school === '충북대학교' ? $match.school = school : $match.school = { $ne: '충북대학교' };
+  if (departments) $match.department = { $in: departments.split(',') };
   if (projectType) $match.projectType = projectType;
   if (subjectName) $match['subject.name'] = toRegEx(subjectName);
+  if (ownProjectTypes) $match['ownProject.type'] = { $in: ownProjectTypes.split(',') };
   if (professor) $match.$or = [
     { 'subject.professor': toRegEx(professor) }, { 'ownProject.professor': toRegEx(professor) }
   ];
@@ -292,7 +294,7 @@ const createProject = async (req, res) => {
   if (body.name) body.name = body.name.replace(/\s+/g, ' ');
   if (body.subject?.name) body.subject.name = body.subject.name.replace(/\s/g, '');
   if (body.subject?.professor) body.subject.professor = body.subject.professor(/\s+/g, ' ');
-  if (body.ownProject?.professor) body.ownProject.professor = body.ownProject.professor(/\s+/g, ' ');
+  if (body.ownProject?.professor) body.ownProject.professor = body.ownProject.professor.replace(/\s+/g, ' ');
   if (body.semester) body.semesterIndex = SEMESTERS.indexOf(body.semester);
   
   const project = await Project.create(body);

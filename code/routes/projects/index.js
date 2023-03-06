@@ -6,7 +6,8 @@ const { createSingleUpload, createArrayUpload } = require('./middlewares');
 const router = Router();
 
 router.get('/', controller.getProjects);
-router.get('/list', isOperator, controller.getProjectList);
+// router.get('/list', isOperator, controller.getProjectList);
+router.get('/list', controller.getProjectList);
 router.get('/me', isStudent, controller.getMyProjects);
 router.get('/none-source/me', isStudent, controller.getMyNoneSourceProjects);
 router.get('/source-code/:id', controller.getProjectSourceCode);

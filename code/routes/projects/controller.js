@@ -86,6 +86,15 @@ const getProjects = async (req, res) => {
 };
 
 const _createMatchPipeline = async query => {
+  
+  const MAJORS = [
+    '소프트웨어학과',
+    '소프트웨어학부',
+    '컴퓨터공학과',
+    '정보통신공학부',
+    '지능로봇공학과'
+  ];
+  
   const {
     createdStart,
     createdEnd,
@@ -98,7 +107,7 @@ const _createMatchPipeline = async query => {
     departments,
     projectType,
     subjectName,
-    ownProjectTypes,
+    ownProjectType,
     professor,
   } = query;
   const $match = {};
@@ -114,10 +123,20 @@ const _createMatchPipeline = async query => {
   }
   if (creatorNo) $match.creator = (await UserInfo.findOne({ no: creatorNo }).select('_id').lean())._id;
   if (school) school === '충북대학교' ? $match.school = school : $match.school = { $ne: '충북대학교' };
-  if (departments) $match.department = { $in: departments.split(',') };
+  if (departments) {
+    const departmentList = departments.split(',');
+    if (departmentList.includes('기타')) {
+      const $nin = MAJORS.filter(major => !departmentList.includes(major));
+      if ($nin.length > 0) $match.department = { $nin };
+    } else {
+      const $in = departmentList;
+      $match.department = { $in };
+    }
+    $match.department = { $in: departments.split(',') };
+  }
   if (projectType) $match.projectType = projectType;
   if (subjectName) $match['subject.name'] = toRegEx(subjectName);
-  if (ownProjectTypes) $match['ownProject.type'] = { $in: ownProjectTypes.split(',') };
+  if (ownProjectType) $match['ownProject.type'] = ownProjectType;
   if (professor) $match.$or = [
     { 'subject.professor': toRegEx(professor) }, { 'ownProject.professor': toRegEx(professor) }
   ];

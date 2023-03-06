@@ -132,6 +132,7 @@ const _createMatchPipeline = async query => {
       const $in = departmentList;
       $match.department = { $in };
     }
+    console.log($match.department);
   }
   if (projectType) $match.projectType = projectType;
   if (subjectName) $match['subject.name'] = toRegEx(subjectName);

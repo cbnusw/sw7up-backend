@@ -65,7 +65,8 @@
     "unzipper": "^0.10.11",
     "uuid": "^8.3.2",
     "winston": "^3.3.3",
-    "winston-daily-rotate-file": "^4.5.5"
+    "winston-daily-rotate-file": "^4.5.5",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^2.0.7",

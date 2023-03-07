@@ -125,6 +125,7 @@ const _convertDocumentsToArray = async (documents) => {
       }, [0, 0, 0, []]);
     
     const subjectName = projectType ? (projectType === '교과목프로젝트' ? (subject ? subject.name : '-') : (ownProject ? ownProject.type : '-')) : '-';
+    console.log(meta);
     
     result.push([
       _id,

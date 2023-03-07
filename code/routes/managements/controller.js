@@ -165,6 +165,7 @@ const _createExcel = (data, prefix = '코딩이력관리') => {
 const getProjects = async (req, res) => {
   const data = await _searchProjectList(req.query);
   _convertDocumentsToArray(data.documents);
+  console.log(data);
   res.json(createResponse(res, data));
 };
 

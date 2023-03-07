@@ -152,7 +152,7 @@ const getDepartments = async (req, res) => {
       { name: '소프트웨어', value: results[0] },
       { name: '컴퓨터공학', value: results[1] },
       { name: '정보통신', value: results[2] },
-      { name: '지능로못', value: results[3] },
+      { name: '지능로봇', value: results[3] },
       { name: '기타', value: results[4] },
     ], files: [
       { name: '소프트웨어', value: results[5][0]?.count || 0 },

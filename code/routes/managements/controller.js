@@ -130,18 +130,18 @@ const _convertDocumentsToArray = async (documents) => {
     
     result.push([
       _id,
-      name || '-',          // 프로젝트 이름
-      school || '-',        // 소속 학교
-      department || '-',    // 소속 학과
-      creator.no || '-',    // 학번
-      creator.name || '-',  // 학생 이름
-      year || '-',          // 수행 년도
-      grade || '-',         // 수행 학년
-      semester || '-',      // 수행 학기
-      projectType || '-',   // 프로젝트 유형
-      subjectName || '-',   // 교과목명/자체프로젝트 유형
-      professor || '-',     // 담당 교수
-      createdAt || '-',     // 등록일
+      name || '-',                // 프로젝트 이름
+      school || '-',              // 소속 학교
+      department || '-',          // 소속 학과
+      creator.no || '-',          // 학번
+      creator.name || '-',        // 학생 이름
+      year ? `${year}년` : '-',    // 수행 년도
+      grade ? `${grade}학년` : '-', // 수행 학년
+      semester || '-',             // 수행 학기
+      projectType || '-',          // 프로젝트 유형
+      subjectName || '-',          // 교과목명/자체프로젝트 유형
+      professor || '-',            // 담당 교수
+      createdAt || '-',            // 등록일
       ...filteredMeta.slice(0, 3),    // 등록된 언어의 파일수, 코드라인수, 주석수
       filteredMeta[3].join('\n'),     // 등록된 언어 중 사용한 언어
       ...notFilteredMeta.slice(0, 3), // 전체 언어의 파일수, 코드라인수, 주석수

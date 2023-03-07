@@ -98,6 +98,7 @@ const _searchProjectList = async query => {
 const _convertDocumentsToArray = async (documents) => {
   const filters = (await LanguageFilter.find().select('name').lean()).map(f => f.name);
   const result = [];
+  const metaToStr = meta => meta.map(info => `${meta.language}: ${info.files} / ${info.codes} / ${info.comments}`).join('\n');
   
   for (let project of documents) {
     const {
@@ -125,8 +126,7 @@ const _convertDocumentsToArray = async (documents) => {
       }, [0, 0, 0, []]);
     
     const subjectName = projectType ? (projectType === '교과목프로젝트' ? (subject ? subject.name : '-') : (ownProject ? ownProject.type : '-')) : '-';
-    console.log(meta);
-    
+  
     result.push([
       _id,
       name || '-',          // 프로젝트 이름
@@ -144,6 +144,7 @@ const _convertDocumentsToArray = async (documents) => {
       filteredMeta[3].join(', '),     // 등록된 언어 중 사용한 언어
       ...notFilteredMeta.slice(0, 3), // 전체 언어의 파일수, 코드라인수, 주석수
       notFilteredMeta[3].join(', '),  // 전체 언어 중 사용한 언어
+      metaToStr(meta),
     ]);
   }
   return result;

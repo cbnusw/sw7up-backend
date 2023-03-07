@@ -74,7 +74,7 @@ const _createSortPipeline = query => {
     });
     return [{ $sort }];
   }
-  return [];
+  return [{ $sort: { createdAt: -1 } }];
 };
 
 const _createPagePipeline = query => {
@@ -126,7 +126,7 @@ const _convertDocumentsToArray = async (documents) => {
       }, [0, 0, 0, []]);
     
     const subjectName = projectType ? (projectType === '교과목프로젝트' ? (subject ? subject.name : '-') : (ownProject ? ownProject.type : '-')) : '-';
-  
+    
     result.push([
       _id,
       name || '-',          // 프로젝트 이름

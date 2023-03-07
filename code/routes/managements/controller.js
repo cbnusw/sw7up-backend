@@ -33,8 +33,8 @@ const _createMatchPipeline = async query => {
   } = query;
   const $match = {};
   
-  if (createdStart) $match.createdAt = { $gte: createdStart };
-  if (createdEnd) $match.createdAt ? $match.createdAt.$lte = createdEnd : $match.createdAt = { $lte: createdEnd };
+  if (createdStart) $match.createdAt = { $gte: new Date(createdStart) };
+  if (createdEnd) $match.createdAt ? $match.createdAt.$lte = new Date(createdEnd) : $match.createdAt = { $lte: new Date(createdEnd) };
   if (grade) $match.grade = +grade;
   if (performedStart) $match.performedAt = { $gte: performedStart };
   if (performedEnd) $match.performedAt ? $match.performedAt.$lte = performedEnd : $match.performedAt = { $lte: performedEnd };

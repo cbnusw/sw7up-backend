@@ -53,7 +53,8 @@ const getDepartments = async (req, res) => {
   const DEP_SOFT = ['소프트웨어학과', '소프트웨어학부'];
   const DEP_COM = '컴퓨터공학과';
   const DEP_IC = '정보통신공학부';
-  const DEP_ALL = [...DEP_SOFT, DEP_COM, DEP_IC];
+  const DEP_IR = '지능로봇공학과';
+  const DEP_ALL = [...DEP_SOFT, DEP_COM, DEP_IC, DEP_IR];
   const $in = (await LanguageFilter.find()).map(filter => filter.name);
   const pipeline = [
     { $unwind: '$meta' }, { $match: { 'meta.language': { $in } } },
@@ -77,6 +78,11 @@ const getDepartments = async (req, res) => {
     }),
     Project.countDocuments({
       source: { $ne: null },
+      school: '충북대학교',
+      department: DEP_IR
+    }),
+    Project.countDocuments({
+      source: { $ne: null },
       $or: [{ school: { $ne: '충북대학교' } }, { $and: [{ school: '충북대학교' }, { department: { $nin: DEP_ALL } }] }]
     }),
     Project.aggregate([
@@ -91,6 +97,11 @@ const getDepartments = async (req, res) => {
     ]),
     Project.aggregate([
       { $match: { source: { $ne: null }, school: '충북대학교', department: DEP_IC } },
+      ...pipeline,
+      { $group: { _id: null, 'count': { $sum: '$meta.files' } } }
+    ]),
+    Project.aggregate([
+      { $match: { source: { $ne: null }, school: '충북대학교', department: DEP_IR } },
       ...pipeline,
       { $group: { _id: null, 'count': { $sum: '$meta.files' } } }
     ]),
@@ -116,6 +127,11 @@ const getDepartments = async (req, res) => {
     ]),
     Project.aggregate([
       { $match: { source: { $ne: null }, school: '충북대학교', department: DEP_IC } },
+      ...pipeline,
+      { $group: { _id: null, 'count': { $sum: '$meta.codes' } } }
+    ]),
+    Project.aggregate([
+      { $match: { source: { $ne: null }, school: '충북대학교', department: DEP_IR } },
       ...pipeline,
       { $group: { _id: null, 'count': { $sum: '$meta.codes' } } }
     ]),
@@ -136,17 +152,20 @@ const getDepartments = async (req, res) => {
       { name: '소프트웨어', value: results[0] },
       { name: '컴퓨터공학', value: results[1] },
       { name: '정보통신', value: results[2] },
-      { name: '기타', value: results[3] },
+      { name: '지능로못', value: results[3] },
+      { name: '기타', value: results[4] },
     ], files: [
-      { name: '소프트웨어', value: results[4][0]?.count || 0 },
-      { name: '컴퓨터공학', value: results[5][0]?.count || 0 },
-      { name: '정보통신', value: results[6][0]?.count || 0 },
-      { name: '기타', value: results[7][0]?.count || 0 },
+      { name: '소프트웨어', value: results[5][0]?.count || 0 },
+      { name: '컴퓨터공학', value: results[6][0]?.count || 0 },
+      { name: '정보통신', value: results[7][0]?.count || 0 },
+      { name: '지능로봇', value: results[8][0]?.count || 0 },
+      { name: '기타', value: results[9][0]?.count || 0 },
     ], codes: [
-      { name: '소프트웨어', value: results[8][0]?.count || 0 },
-      { name: '컴퓨터공학', value: results[9][0]?.count || 0 },
-      { name: '정보통신', value: results[10][0]?.count || 0 },
-      { name: '기타', value: results[11][0]?.count || 0 },
+      { name: '소프트웨어', value: results[10][0]?.count || 0 },
+      { name: '컴퓨터공학', value: results[11][0]?.count || 0 },
+      { name: '정보통신', value: results[12][0]?.count || 0 },
+      { name: '지능로봇', value: results[13][0]?.count || 0 },
+      { name: '기타', value: results[14][0]?.count || 0 },
     ]
   }));
 };

@@ -78,8 +78,9 @@ const _createSortPipeline = query => {
 };
 
 const _createPagePipeline = query => {
-  const { limit = 100, skip = 0 } = query;
-  return [{ $skip: +skip }, { $limit: +limit }];
+  const { limit, skip = 0 } = query;
+  if (limit) return [{ $skip: +skip }, { $limit: +limit }];
+  else return [];
 };
 
 const _searchProjectList = async query => {

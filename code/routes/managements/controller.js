@@ -127,7 +127,6 @@ const _convertDocumentsToArray = async (documents) => {
     
     const subjectName = projectType ? (projectType === '교과목프로젝트' ? (subject ? subject.name : '-') : (ownProject ? ownProject.type : '-')) : '-';
   
-    console.log(meta);
     result.push([
       _id,
       name || '-',          // 프로젝트 이름
@@ -177,7 +176,7 @@ const downloadProjects = async (req, res) => {
   const data = await _searchProjectList(req.query);
   data.documents = await _convertDocumentsToArray(data.documents);
   const sheetData = [
-    ['프로젝트명', '소속학교', '소속학과(부)', '학번', '이름', '수행연도', '수행학년', '수행학기', '프로젝트유형', '교과목명/자체프로젝트', '등록일', '파일수(등록언어)', '코드라인수(등록언어)', '주석수(등록언어)', '사용언어(등록언어)', '파일수(전체)', '코드수(전체)', '주석수(전체)', '사용언어(전체)'],
+    ['프로젝트명', '소속학교', '소속학과(부)', '학번', '이름', '수행연도', '수행학년', '수행학기', '프로젝트유형', '교과목명/자체프로젝트', '등록일', '파일수(등록언어)', '코드라인수(등록언어)', '주석수(등록언어)', '사용언어(등록언어)', '파일수(전체)', '코드수(전체)', '주석수(전체)', '사용언어(전체)', '요약'],
     ...data.documents.map(document => document.slice(1))
   ];
   

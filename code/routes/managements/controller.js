@@ -85,7 +85,6 @@ const _createPagePipeline = query => {
 
 const _searchProjectList = async query => {
   const match = await _createMatchPipeline(query);
-  console.log(JSON.stringify(match, null, 2));
   const sort = _createSortPipeline(query);
   const page = _createPagePipeline(query);
   const searchPipeline = [...match, ...sort, ...page];

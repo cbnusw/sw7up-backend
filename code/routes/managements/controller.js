@@ -98,7 +98,7 @@ const _searchProjectList = async query => {
 const _convertDocumentsToArray = async (documents) => {
   const filters = (await LanguageFilter.find().select('name').lean()).map(f => f.name);
   const result = [];
-  const metaToStr = meta => meta.map(info => `${meta.language}: ${info.files} / ${info.codes} / ${info.comments}`).join('\n');
+  const metaToStr = meta => meta.map(info => `${info.language}: ${info.files} / ${info.codes} / ${info.comments}`).join('\n');
   
   for (let project of documents) {
     const {

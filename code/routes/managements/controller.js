@@ -92,7 +92,6 @@ const _searchProjectList = async query => {
   const { total } = (await Project.aggregate(countPipeline).allowDiskUse(true))[0] || { total: 0 };
   let documents = await Project.aggregate(searchPipeline).allowDiskUse(true);
   documents = await Project.populate(documents, { path: 'creator', model: UserInfo });
-  console.log(total);
   return { total, documents };
 };
 

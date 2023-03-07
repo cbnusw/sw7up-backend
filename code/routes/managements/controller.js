@@ -88,10 +88,11 @@ const _searchProjectList = async query => {
   const sort = _createSortPipeline(query);
   const page = _createPagePipeline(query);
   const searchPipeline = [...match, ...sort, ...page];
-  const countPipeline = [...match, ...sort, { $count: 'total' }];
+  const countPipeline = [...match, { $count: 'total' }];
   const { total } = (await Project.aggregate(countPipeline).allowDiskUse(true))[0] || { total: 0 };
   let documents = await Project.aggregate(searchPipeline).allowDiskUse(true);
   documents = await Project.populate(documents, { path: 'creator', model: UserInfo });
+  console.log(total);
   return { total, documents };
 };
 

@@ -177,7 +177,7 @@ const downloadProjects = async (req, res) => {
     ...data.documents
   ];
   
-  const { filepath, filename } = _createExcel({ sheetData, sheetName: '등록된 프로젝트' });
+  const { filepath, filename } = _createExcel([{ sheetData, sheetName: '등록된 프로젝트' }]);
   
   res.download(filepath, filename);
 };

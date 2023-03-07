@@ -141,9 +141,9 @@ const _convertDocumentsToArray = async (documents) => {
       subjectName || '-',   // 교과목명/자체프로젝트 유형
       createdAt || '-',     // 등록일
       ...filteredMeta.slice(0, 3),    // 등록된 언어의 파일수, 코드라인수, 주석수
-      filteredMeta[3].join(', '),     // 등록된 언어 중 사용한 언어
+      filteredMeta[3].join('\n'),     // 등록된 언어 중 사용한 언어
       ...notFilteredMeta.slice(0, 3), // 전체 언어의 파일수, 코드라인수, 주석수
-      notFilteredMeta[3].join(', '),  // 전체 언어 중 사용한 언어
+      notFilteredMeta[3].join('\n'),  // 전체 언어 중 사용한 언어
       metaToStr(meta),
     ]);
   }

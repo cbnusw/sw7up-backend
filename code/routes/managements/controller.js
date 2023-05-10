@@ -178,7 +178,12 @@ const downloadProjects = async (req, res) => {
   const data = await _searchProjectList(req.query);
   data.documents = await _convertDocumentsToArray(data.documents);
   const sheetData = [
-    ['프로젝트명', '소속학교', '소속학과(부)', '학번', '이름', '수행연도', '수행학년', '수행학기', '프로젝트유형', '교과목명/자체프로젝트', '담당교수', '등록일', '파일수(등록언어)', '코드라인수(등록언어)', '주석수(등록언어)', '사용언어(등록언어)', '파일수(전체)', '코드수(전체)', '주석수(전체)', '사용언어(전체)', '요약'],
+    [
+      '프로젝트명', '소속학교', '소속학과(부)', '학번', '이름', '수행연도', '수행학년', '수행학기',
+      '프로젝트유형', '교과목명/자체프로젝트', '담당교수', '등록일',
+      '파일수(등록언어)', '코드라인수(등록언어)', '주석수(등록언어)', '사용언어(등록언어)',
+      '파일수(전체)', '코드수(전체)', '주석수(전체)', '사용언어(전체)', '요약'
+    ],
     ...data.documents.map(document => document.slice(1))
   ];
   
@@ -187,5 +192,15 @@ const downloadProjects = async (req, res) => {
   res.download(filepath, filename);
 };
 
+const _createStatisticMatchPipeline = async query => {
+  const $in = (await LanguageFilter.find()).map(filter => filter.name);
+  
+  return [];
+};
+
+const getStatistic = async (req, res) => {
+};
+
 exports.getProjects = asyncHandler(getProjects);
 exports.downloadProjects = asyncHandler(downloadProjects);
+exports.getStatistic = asyncHandler(getStatistic);

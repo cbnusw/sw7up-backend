@@ -15,7 +15,7 @@ versions.forEach(v => {
   readdirSync(apiVPath)
     .filter(dir => statSync(join(apiVPath, dir)).isDirectory())
     .forEach(dir => {
-      debug(`Loading: ${dir} API`);
+      debug(`Loading API: /${dir}`);
       r.use(`/${dir}`, require(join(apiVPath, dir)));
     });
 

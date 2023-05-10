@@ -51,6 +51,7 @@ const users = [
       name: '안광모',
       email: 'akm@test.com',
       phone: '01022223333',
+      university: '충북대학교',
       department: '컴퓨터공학과'
     }
   },
@@ -62,7 +63,8 @@ const users = [
       name: '김윤석',
       email: 'kys@test.com',
       phone: '01033334444',
-      department: '컴퓨터공학과'
+      university: '충북대학교',
+      department: '컴퓨터공학과',
     }
   },
   {
@@ -73,6 +75,7 @@ const users = [
       name: '오수현',
       email: 'osh@test.com',
       phone: '01044445555',
+      university: '충북대학교',
       department: '컴퓨터공학과'
     }
   },
@@ -84,6 +87,7 @@ const users = [
       name: '임희동',
       email: 'lhd@test.com',
       phone: '01055556666',
+      university: '충북대학교',
       department: '컴퓨터공학과'
     }
   },
@@ -95,6 +99,7 @@ const users = [
       name: '이찬혁',
       email: 'lch@test.com',
       phone: '01044445556',
+      university: '충북대학교',
       department: '정보통신공학부'
     }
   },
@@ -106,6 +111,7 @@ const users = [
       name: '조희진',
       email: 'jhj@test.com',
       phone: '01044445557',
+      university: '충북대학교',
       department: '소프트웨어학과'
     }
   },

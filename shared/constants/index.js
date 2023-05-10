@@ -55,6 +55,7 @@ const fileTypes = [
   'OverseasEducation',
   'PressRelease',
   'Resource',
+  'StepUpContent',
   'StudentActivity',
   'UserInfo',
 ];

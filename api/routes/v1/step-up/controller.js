@@ -1,10 +1,15 @@
 const asyncHandler = require('express-async-handler');
-const { StepUpLevel, StepUpSubject, StepUpContent, UserInfo } = require('../../../../shared/models');
+const { File, StepUpLevel, StepUpSubject, StepUpContent, UserInfo } = require('../../../../shared/models');
 const { STEP_UP_CONTENT_NOT_FOUND } = require('../../../../shared/errors');
 const { createResponse } = require('../../../../shared/utils/response');
 const { hasRoles } = require('../../../../shared/utils/permission');
 const { cloneDeep } = require('lodash');
-const { findImageUrlsFromHtml, updateFiles, removeFilesByUrls } = require('../../../../shared/utils/file');
+const {
+  findImageUrlsFromHtml,
+  updateFiles,
+  removeFilesByUrls,
+  removeFilesByIds
+} = require('../../../../shared/utils/file');
 
 const getLevels = async (req, res) => {
   const levels = await StepUpLevel.find().sort({ order: 1 });
@@ -34,8 +39,17 @@ const updateLevelName = async (req, res) => {
 
 const removeLevel = async (req, res) => {
   const { id } = req.params;
-  await StepUpLevel.deleteOne({ _id: id });
-  // 하위 주제 및 콘텐츠 삭제 로직 추가(업로드된 파일도 삭제해야 함)
+  const subjects = (await StepUpSubject.find({ level: id }).lean()).map(sbj => sbj._id);
+  const contents = (await StepUpContent.find({ subject: { $in: subjects } }).lean()).map(c => c._id);
+  const files = (await File.find({ ref: { $in: contents }, refModel: 'StepUpContent' }).lean()).map(f => f._id);
+  
+  await Promise.all([
+    StepUpLevel.deleteOne({ _id: id }),
+    StepUpSubject.deleteMany({ _id: { $in: subjects } }),
+    StepUpContent.deleteMany({ _id: { $in: contents } }),
+    removeFilesByIds(req, files)
+  ]);
+  
   res.json(createResponse(res));
 };
 
@@ -123,8 +137,7 @@ const createContent = async (req, res) => {
   const { user } = req;
   const body = cloneDeep(req.body);
   
-  console.log(body);
-  
+  delete body._id;
   body.writer = user.info;
   
   const document = await StepUpContent.create(body);
@@ -144,8 +157,7 @@ const updateContent = async (req, res, next) => {
   const urls = findImageUrlsFromHtml(body.content || '');
   
   await Promise.all([
-    document.updateOne({ $set }),
-    updateFiles(req, document._id, 'StepUpContent', urls)
+    document.updateOne({ $set }), updateFiles(req, document._id, 'StepUpContent', urls)
   ]);
   
   res.json(createResponse(res));
@@ -155,13 +167,12 @@ const removeContent = async (req, res, next) => {
   const { params: { id } } = req;
   const document = await StepUpContent.findById(id);
   
-  if(!document) return next(STEP_UP_CONTENT_NOT_FOUND);
+  if (!document) return next(STEP_UP_CONTENT_NOT_FOUND);
   
   const urls = findImageUrlsFromHtml(document.content || '');
   
   await Promise.all([
-    document.deleteOne(),
-    removeFilesByUrls(req, urls)
+    document.deleteOne(), removeFilesByUrls(req, urls)
   ]);
   
   res.json(createResponse(res));

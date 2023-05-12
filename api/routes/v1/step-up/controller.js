@@ -5,12 +5,18 @@ const { createResponse } = require('../../../../shared/utils/response');
 const { hasRoles } = require('../../../../shared/utils/permission');
 const { cloneDeep } = require('lodash');
 const {
-  findImageUrlsFromHtml, updateFiles, removeFilesByUrls, removeFilesByIds
+  findImageUrlsFromHtml, updateFiles, removeFilesByIds
 } = require('../../../../shared/utils/file');
 
 const getLevels = async (req, res) => {
   const levels = await StepUpLevel.find().sort({ order: 1 });
   res.json(createResponse(res, levels));
+};
+
+const getLevel = async (req, res) => {
+  const { params: { id } } = req;
+  const level = await StepUpLevel.findById(id).lean();
+  res.json(createResponse(res, level));
 };
 
 const createLevel = async (req, res) => {
@@ -104,9 +110,7 @@ const removeSubject = async (req, res) => {
     
     await Promise.all(subjects.map(id => remove(id)));
     await Promise.all([
-      StepUpContent.deleteMany({ subject: parent }),
-      StepUpSubject.deleteMany({ parent }),
-      removeFilesByIds(req, files),
+      StepUpContent.deleteMany({ subject: parent }), StepUpSubject.deleteMany({ parent }), removeFilesByIds(req, files),
     ]);
   }
 };
@@ -176,14 +180,14 @@ const removeContent = async (req, res, next) => {
   const files = (await File.find({ ref: document._id, refModel: 'StepUpContent' }).lean()).map(({ _id }) => _id);
   
   await Promise.all([
-    document.deleteOne(),
-    removeFilesByIds(req, files)
+    document.deleteOne(), removeFilesByIds(req, files)
   ]);
   
   res.json(createResponse(res));
 };
 
 exports.getLevels = asyncHandler(getLevels);
+exports.getLevel = asyncHandler(getLevel);
 exports.createLevel = asyncHandler(createLevel);
 exports.reorderLevels = asyncHandler(reorderLevels);
 exports.updateLevelName = asyncHandler(updateLevelName);

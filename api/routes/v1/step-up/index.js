@@ -5,6 +5,7 @@ const { isOperator, authenticate } = require('../../../../shared/middlewares/aut
 const router = Router();
 
 router.get('/levels', controller.getLevels);
+router.get('/level', controller.getLevel);
 router.post('/levels', ...isOperator, controller.createLevel);
 router.post('/levels/reorder', ...isOperator, controller.reorderLevels);
 router.patch('/levels/:id/name', ...isOperator, controller.updateLevelName);

@@ -5,10 +5,7 @@ const { createResponse } = require('../../../../shared/utils/response');
 const { hasRoles } = require('../../../../shared/utils/permission');
 const { cloneDeep } = require('lodash');
 const {
-  findImageUrlsFromHtml,
-  updateFiles,
-  removeFilesByUrls,
-  removeFilesByIds
+  findImageUrlsFromHtml, updateFiles, removeFilesByUrls, removeFilesByIds
 } = require('../../../../shared/utils/file');
 
 const getLevels = async (req, res) => {
@@ -39,15 +36,12 @@ const updateLevelName = async (req, res) => {
 
 const removeLevel = async (req, res) => {
   const { id } = req.params;
-  const subjects = (await StepUpSubject.find({ level: id }).lean()).map(sbj => sbj._id);
-  const contents = (await StepUpContent.find({ subject: { $in: subjects } }).lean()).map(c => c._id);
-  const files = (await File.find({ ref: { $in: contents }, refModel: 'StepUpContent' }).lean()).map(f => f._id);
+  const subjects = (await StepUpSubject.find({ level: id }).lean()).map(({ _id }) => _id);
+  const contents = (await StepUpContent.find({ subject: { $in: subjects } }).lean()).map(({ _id }) => _id);
+  const files = (await File.find({ ref: { $in: contents }, refModel: 'StepUpContent' }).lean()).map(({ _id }) => _id);
   
   await Promise.all([
-    StepUpLevel.deleteOne({ _id: id }),
-    StepUpSubject.deleteMany({ _id: { $in: subjects } }),
-    StepUpContent.deleteMany({ _id: { $in: contents } }),
-    removeFilesByIds(req, files)
+    StepUpLevel.deleteOne({ _id: id }), StepUpSubject.deleteMany({ _id: { $in: subjects } }), StepUpContent.deleteMany({ _id: { $in: contents } }), removeFilesByIds(req, files)
   ]);
   
   res.json(createResponse(res));
@@ -104,9 +98,16 @@ const removeSubject = async (req, res) => {
   res.json(createResponse(res));
   
   async function remove (parent) {
-    const subjects = await StepUpSubject.find({ parent });
-    await Promise.all(subjects.map(({ _id }) => remove(_id)));
-    await Promise.all(subjects.map(({ _id }) => StepUpSubject.deleteOne({ _id })));
+    const subjects = (await StepUpSubject.find({ parent }).lean()).map(({ _id }) => _id);
+    const contents = (await StepUpContent.find({ subject: parent })).map(({ _id }) => _id);
+    const files = (await File.find({ ref: { $in: contents }, refModel: 'StepUpContent' }).lean()).map(({ _id }) => _id);
+    
+    await Promise.all(subjects.map(id => remove(id)));
+    await Promise.all([
+      StepUpContent.deleteMany({ subject: parent }),
+      StepUpSubject.deleteMany({ parent }),
+      removeFilesByIds(req, files),
+    ]);
   }
 };
 
@@ -141,7 +142,9 @@ const createContent = async (req, res) => {
   body.writer = user.info;
   
   const document = await StepUpContent.create(body);
-  const urls = findImageUrlsFromHtml(req.body.content || '');
+  const urls = [
+    ...findImageUrlsFromHtml(req.body.problem || ''), ...findImageUrlsFromHtml(req.body.solution || '')
+  ];
   
   await updateFiles(req, document._id, 'StepUpContent', urls);
   res.json(createResponse(res, document));
@@ -154,7 +157,9 @@ const updateContent = async (req, res, next) => {
   
   if (!document) return next(STEP_UP_CONTENT_NOT_FOUND);
   
-  const urls = findImageUrlsFromHtml(body.content || '');
+  const urls = [
+    ...findImageUrlsFromHtml(req.body.problem || ''), ...findImageUrlsFromHtml(req.body.solution || '')
+  ];
   
   await Promise.all([
     document.updateOne({ $set }), updateFiles(req, document._id, 'StepUpContent', urls)
@@ -168,11 +173,11 @@ const removeContent = async (req, res, next) => {
   const document = await StepUpContent.findById(id);
   
   if (!document) return next(STEP_UP_CONTENT_NOT_FOUND);
-  
-  const urls = findImageUrlsFromHtml(document.content || '');
+  const files = (await File.find({ ref: document._id, refModel: 'StepUpContent' }).lean()).map(({ _id }) => _id);
   
   await Promise.all([
-    document.deleteOne(), removeFilesByUrls(req, urls)
+    document.deleteOne(),
+    removeFilesByIds(req, files)
   ]);
   
   res.json(createResponse(res));

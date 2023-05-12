@@ -11,7 +11,10 @@ const schema = createSchema({
     type: String,
     trim: true
   },
-  content: {
+  problem: {
+    type: String,
+  },
+  solution: {
     type: String,
   },
   hits: {

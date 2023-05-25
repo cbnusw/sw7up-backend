@@ -2,18 +2,14 @@ const asyncHandler = require('express-async-handler');
 const { existsSync, mkdirSync } = require('fs');
 const { join } = require('path');
 const xlsx = require('xlsx');
-const { UserInfo, Project, LanguageFilter } = require('../../../shared/models');
+const { LanguageFilter, Professor, Project, StepUp, Student, Topcit, TopcitStat, UserInfo } = require('../../../shared/models');
 const { toRegEx } = require('../../../shared/models/mappers');
 const { createResponse } = require('../../../shared/utils/response');
 const { ROOT_DIR } = require('../../../shared/env');
 
 const _createMatchPipeline = async query => {
   const MAJORS = [
-    '소프트웨어학과',
-    '소프트웨어학부',
-    '컴퓨터공학과',
-    '정보통신공학부',
-    '지능로봇공학과'
+    '소프트웨어학과', '소프트웨어학부', '컴퓨터공학과', '정보통신공학부', '지능로봇공학과'
   ];
   
   const {
@@ -79,8 +75,7 @@ const _createSortPipeline = query => {
 
 const _createPagePipeline = query => {
   const { limit, skip = 0 } = query;
-  if (limit) return [{ $skip: +skip }, { $limit: +limit }];
-  else return [];
+  if (limit) return [{ $skip: +skip }, { $limit: +limit }]; else return [];
 };
 
 const _searchProjectList = async query => {
@@ -129,8 +124,7 @@ const _convertDocumentsToArray = async (documents) => {
     const professor = projectType ? (projectType === '교과목프로젝트' ? (subject ? subject.professor : '-') : (ownProject ? ownProject.professor : '-')) : '-';
     
     result.push([
-      _id,
-      name || '-',                // 프로젝트 이름
+      _id, name || '-',                // 프로젝트 이름
       school || '-',              // 소속 학교
       department || '-',          // 소속 학과
       creator.no || '-',          // 학번
@@ -179,17 +173,303 @@ const downloadProjects = async (req, res) => {
   data.documents = await _convertDocumentsToArray(data.documents);
   const sheetData = [
     [
-      '프로젝트명', '소속학교', '소속학과(부)', '학번', '이름', '수행연도', '수행학년', '수행학기',
-      '프로젝트유형', '교과목명/자체프로젝트', '담당교수', '등록일',
-      '파일수(등록언어)', '코드라인수(등록언어)', '주석수(등록언어)', '사용언어(등록언어)',
-      '파일수(전체)', '코드수(전체)', '주석수(전체)', '사용언어(전체)', '요약'
-    ],
-    ...data.documents.map(document => document.slice(1))
+      '프로젝트명', '소속학교', '소속학과(부)', '학번', '이름', '수행연도', '수행학년', '수행학기', '프로젝트유형', '교과목명/자체프로젝트', '담당교수', '등록일', '파일수(등록언어)', '코드라인수(등록언어)', '주석수(등록언어)', '사용언어(등록언어)', '파일수(전체)', '코드수(전체)', '주석수(전체)', '사용언어(전체)', '요약'
+    ], ...data.documents.map(document => document.slice(1))
   ];
   
   const { filepath, filename } = _createExcel([{ sheetData, sheetName: '등록된 프로젝트' }]);
   
   res.download(filepath, filename);
+};
+
+const getStudents = async (req, res) => {
+  const defaultLimit = 30;
+  const { query } = req;
+  let { limit, skip } = query;
+  limit = +(limit || defaultLimit);
+  skip = +(skip || 0);
+  if (isNaN(limit)) limit = defaultLimit;
+  if (isNaN(skip)) skip = 0;
+  
+  const filter = await createFilter(query);
+  const total = await Student.countDocuments(filter);
+  const documents = await Student.find(filter).sort({
+    department: 1, grade: 1, no: 1
+  }).limit(limit).skip(skip).populate({ path: 'professor' });
+  
+  res.json(createResponse(res, { total, documents }));
+  
+  async function createFilter (query) {
+    const { professorNo, professorName, studentNo, studentName, department } = query;
+    const filter = {};
+    
+    let $in;
+    if (department) filter.department = department;
+    if (professorNo) $in = (await Professor.find({ no: professorNo }).lean()).map(({ _id }) => _id);
+    else if (professorName) $in = (await Professor.find({ name: toRegEx(professorName) }).lean()).map(({ _id }) => _id);
+    if ($in) filter.professor = { $in };
+    if (studentNo) filter.no = studentNo; else if (studentName) filter.name = toRegEx(studentName);
+    
+    return filter;
+  }
+};
+
+const getStudentDepartments = async (req, res) => {
+  const departments = await Student.distinct('department');
+  res.json(createResponse(res, departments));
+};
+
+const registerStudents = async (req, res) => {
+  const { body } = req;
+  for (let data of body) await upsert(data);
+  res.json(createResponse(res));
+  
+  async function upsert (data) {
+    const { professor, student } = data;
+    
+    let professorDocument = await Professor.findOne({ no: professor.no });
+    let studentDocument = await Student.findOne({ no: student.no });
+    
+    if (!professorDocument) professorDocument = await Professor.create(professor);
+    if (!studentDocument) await Student.create({
+      ...student,
+      professor: professorDocument._id
+    }); else await studentDocument.updateOne({ $set: { ...student, professor: professorDocument._id } });
+  }
+};
+
+const clearStudents = async (req, res) => {
+  await Student.deleteMany({});
+  res.json(createResponse(res));
+};
+
+const removeStudent = async (req, res) => {
+  const { params: { id } } = req;
+  await Student.deleteOne({ _id: id });
+  res.json(createResponse(res));
+};
+
+const getTopcits = async (req, res) => {
+  const defaultLimit = 30;
+  const { query } = req;
+  let { limit, skip } = query;
+  limit = +(limit || defaultLimit);
+  skip = +(skip || 0);
+  if (isNaN(limit)) limit = defaultLimit;
+  if (isNaN(skip)) skip = 0;
+  
+  const filter = await createFilter(query);
+  const total = await Topcit.countDocuments(filter);
+  const documents = await Topcit.find(filter).sort({
+    no: -1
+  }).limit(limit).skip(skip);
+  
+  res.json(createResponse(res, { total, documents }));
+  
+  async function createFilter (query) {
+    const { no, year, level, department, grade, studentNo, studentName } = query;
+    const filter = {};
+    
+    if (no) filter.no = +no;
+    if (year) filter.year = +year;
+    if (level) filter.level = +level;
+    if (department) filter['student.department'] = department;
+    if (grade) filter['student.grade'] = grade;
+    if (studentNo) filter['student.no'] = studentNo; else if (studentName) filter['student.name'] = toRegEx(studentName);
+    
+    return filter;
+  }
+};
+
+const getTopcitYears = async (req, res) => {
+  const list = await Topcit.distinct('year');
+  list.sort((a, b) => b - a);
+  res.json(createResponse(res, list));
+};
+
+const getTopcitsNoList = async (req, res) => {
+  const list = await Topcit.distinct('no');
+  list.sort((a, b) => b - a);
+  res.json(createResponse(res, list));
+};
+
+const getTopcitLevels = async (req, res) => {
+  let list = await Topcit.distinct('level');
+  list = list.filter(item => item !== null).sort();
+  res.json(createResponse(res, list));
+};
+
+const getTopcitDepartments = async (req, res) => {
+  const list = await Topcit.distinct('student.department');
+  list.sort();
+  res.json(createResponse(res, list));
+};
+
+const getTopcitGrades = async (req, res) => {
+  const list = await Topcit.distinct('student.grade');
+  list.sort();
+  res.json(createResponse(res, list));
+};
+
+const registerTopcits = async (req, res) => {
+  const { body: { clear, no, data } } = req;
+  
+  if (clear) await Topcit.deleteMany(no ? { no } : {});
+  await Promise.all(data.map(upsert));
+  res.json(createResponse(res));
+  
+  async function upsert (item) {
+    const { no, student } = item;
+    const document = await Topcit.findOne({ no, 'student.no': student.no });
+    if (!document) await Topcit.create(item);
+    else await document.updateOne({ $set: item });
+  }
+};
+
+const removeTopcit = async (req, res) => {
+  const { params: { id } } = req;
+  await Topcit.deleteOne({ _id: id });
+  res.json(createResponse(res));
+};
+
+const getTopcitStats = async (req, res) => {
+  const defaultLimit = 30;
+  const { query } = req;
+  let { limit, skip } = query;
+  limit = +(limit || defaultLimit);
+  skip = +(skip || 0);
+  if (isNaN(limit)) limit = defaultLimit;
+  if (isNaN(skip)) skip = 0;
+  
+  const filter = await createFilter(query);
+  const total = await TopcitStat.countDocuments(filter);
+  const documents = await TopcitStat.find(filter).sort({
+    no: -1
+  }).limit(limit).skip(skip);
+  
+  res.json(createResponse(res, { total, documents }));
+  
+  async function createFilter (query) {
+    const { no, year, category } = query;
+    const filter = {};
+    
+    if (no) filter.no = +no;
+    if (year) filter.year = +year;
+    if (category) filter.category = category;
+    
+    return filter;
+  }
+};
+
+const getTopcitStatCategories = async (req, res) => {
+  const categories = await TopcitStat.distinct('category');
+  categories.sort((a, b) => {
+    if (a === '전국') return -1;
+    if (b === '전국') return 1;
+    if (a === '학교') return -1;
+    if (b === '학교') return 1;
+    return a <= b ? -1 : 1;
+  });
+  res.json(createResponse(res, categories));
+};
+
+const getTopcitStatYears = async (req, res) => {
+  const years = await TopcitStat.distinct('year');
+  years.sort((a, b) => b - a);
+  res.json(createResponse(res, years));
+};
+
+const getTopcitStatNoList = async (req, res) => {
+  const noList = await TopcitStat.distinct('no');
+  noList.sort((a, b) => b - a);
+  res.json(createResponse(res, noList));
+};
+
+const registerTopcitStats = async (req, res) => {
+  const { body: { clear, no, data } } = req;
+  
+  if (clear) await TopcitStat.deleteMany(no ? { no } : {});
+  await Promise.all(data.map(upsert));
+  res.json(createResponse(res));
+  
+  async function upsert (item) {
+    const { category, no } = item;
+    const document = await TopcitStat.findOne({ no, category });
+    if (!document) await TopcitStat.create(item);
+    else await document.updateOne({ $set: item });
+  }
+};
+
+const removeTopcitStat = async (req, res) => {
+  const { params: { id } } = req;
+  await TopcitStat.deleteOne({ _id: id });
+  res.json(createResponse(res));
+};
+
+const getStepUpData = async (req, res) => {
+  const defaultLimit = 30;
+  const { query } = req;
+  let { limit, skip } = query;
+  limit = +(limit || defaultLimit);
+  skip = +(skip || 0);
+  if (isNaN(limit)) limit = defaultLimit;
+  if (isNaN(skip)) skip = 0;
+  
+  const filter = await createFilter(query);
+  const total = await StepUp.countDocuments(filter);
+  const documents = await StepUp.find(filter).sort({
+    department: 1,
+    name: 1,
+    no: 1,
+    level: -1,
+  }).limit(limit).skip(skip);
+  
+  res.json(createResponse(res, { total, documents }));
+  
+  async function createFilter (query) {
+    const { department, studentNo, studentName, level } = query;
+    const filter = {};
+    
+    if (department) filter.department = department;
+    if (level) filter.level = +level;
+    if (studentNo) filter.no = studentNo;
+    else if (studentName) filter.name = toRegEx(studentName);
+    
+    return filter;
+  }
+};
+
+const getStepUpDapartments = async (req, res) => {
+  const departments = await StepUp.distinct('department');
+  departments.sort();
+  res.json(createResponse(res, departments));
+};
+
+const getStepUpLevels = async (req, res) => {
+  const levels = await StepUp.distinct('level');
+  levels.sort();
+  res.json(createResponse(res, levels));
+};
+
+const registerStepUpData = async (req, res) => {
+  const { body: { clear, data } } = req;
+  
+  if (clear) await StepUp.deleteMany({});
+  await Promise.all(data.map(upsert));
+  res.json(createResponse(res));
+  
+  async function upsert (item) {
+    const { no, level } = item;
+    const document = await StepUp.findOne({ no, level });
+    if (!document) await StepUp.create(item);
+    else await document.updateOne({ $set: item });
+  }
+};
+
+const removeStepUp = async (req, res) => {
+  const { params: { id } } = req;
+  await StepUp.deleteOne({ _id: id });
+  res.json(createResponse(res));
 };
 
 const _createStatisticMatchPipeline = async query => {
@@ -203,4 +483,33 @@ const getStatistic = async (req, res) => {
 
 exports.getProjects = asyncHandler(getProjects);
 exports.downloadProjects = asyncHandler(downloadProjects);
+
+exports.getStudents = asyncHandler(getStudents);
+exports.getStudentDepartments = asyncHandler(getStudentDepartments);
+exports.registerStudents = asyncHandler(registerStudents);
+exports.clearStudents = asyncHandler(clearStudents);
+exports.removeStudent = asyncHandler(removeStudent);
+
+exports.getTopcits = asyncHandler(getTopcits);
+exports.getTopcitYears = asyncHandler(getTopcitYears);
+exports.getTopcitsNoList = asyncHandler(getTopcitsNoList)
+exports.getTopcitLevels = asyncHandler(getTopcitLevels);
+exports.getTopcitDepartments = asyncHandler(getTopcitDepartments);
+exports.getTopcitGrades = asyncHandler(getTopcitGrades);
+exports.registerTopcits = asyncHandler(registerTopcits);
+exports.removeTopcit = asyncHandler(removeTopcit);
+
+exports.getTopcitStats = asyncHandler(getTopcitStats);
+exports.getTopcitStatCategories = asyncHandler(getTopcitStatCategories);
+exports.getTopcitStatYears = asyncHandler(getTopcitStatYears);
+exports.getTopcitStatNoList = asyncHandler(getTopcitStatNoList);
+exports.registerTopcitStats = asyncHandler(registerTopcitStats);
+exports.removeTopcitStat = asyncHandler(removeTopcitStat);
+
+exports.getStepUpData = asyncHandler(getStepUpData);
+exports.getStepUpDapartments = asyncHandler(getStepUpDapartments);
+exports.getStepUpLevels = asyncHandler(getStepUpLevels);
+exports.registerStepUpData = asyncHandler(registerStepUpData);
+exports.removeStepUp = asyncHandler(removeStepUp);
+
 exports.getStatistic = asyncHandler(getStatistic);

@@ -142,6 +142,19 @@ const users = [
       position: '팀장',
     }
   },
+  {
+    no: '111111',
+    password: 'asdf',
+    role: 'staff',
+    permissions: [],
+    info: {
+      name: '김교수',
+      email: 'professor@test.com',
+      phone: '01090909090',
+      department: '소프트웨어학부',
+      position: '교수',
+    }
+  },
 ];
 
 const createSeeds = async () => {

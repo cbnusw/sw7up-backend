@@ -194,7 +194,7 @@ const getStudents = async (req, res) => {
   const filter = await createFilter(query);
   const total = await Student.countDocuments(filter);
   const documents = await Student.find(filter).sort({
-    department: 1, grade: 1, no: 1
+    department: 1, grade: 1, name: 1
   }).limit(limit).skip(skip).populate({ path: 'professor' });
   
   res.json(createResponse(res, { total, documents }));

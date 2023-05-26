@@ -2,6 +2,7 @@ const axios = require('axios');
 const asyncHandler = require('express-async-handler');
 const { AUTH_APP_HOST } = require('../env');
 const { FORBIDDEN } = require('../errors');
+const { UserInfo } = require('../models');
 const {
   hasRole: _hasRole,
   hasRoles: _hasRoles,
@@ -16,13 +17,15 @@ const authenticate = asyncHandler(async (req, res, next) => {
     delete req.user;
     return next();
   }
-
+  
   try {
     const headers = { 'x-access-token': accessToken };
     const response = await axios.get(`${AUTH_APP_HOST}/token/validate`, { headers });
     const { data } = response.data;
-
+    
     req.user = data;
+    const { no } = await UserInfo.findById(data.info).lean();
+    req.userNo = no;
     next();
   } catch (e) {
     next();
@@ -33,11 +36,13 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
   const headers = {};
   const accessToken = req.headers['x-access-token'] || req.query['access_token'];
   if (accessToken) headers['x-access-token'] = accessToken;
-
+  
   try {
     const response = await axios.get(`${AUTH_APP_HOST}/token/validate`, { headers });
     const { data } = response.data;
     req.user = data;
+    const { no } = await UserInfo.findById(data.info).lean();
+    req.userNo = no;
     next();
   } catch (e) {
     next(e.response && e.response.data || e);

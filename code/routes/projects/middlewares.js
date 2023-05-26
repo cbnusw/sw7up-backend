@@ -9,21 +9,29 @@ const { createResponse } = require('../../../shared/utils/response');
 const createProjectUpload = (id, path, baseDir, useOriginalName) => {
   const chunks = decodeURI(path).split('/').slice(3);
   const dirPath = chunks.join('/');
-  if (!id) return next(PROJECT_ID_REQUIRED);
+  if (!id) throw PROJECT_ID_REQUIRED;
   const dir = `/code/static/projects/${id}${baseDir ? '/' + baseDir : ''}${dirPath ? '/' + dirPath : ''}`;
   return createUpload(dir, useOriginalName);
 };
 
 const createSingleUpload = (baseDir, useOriginalName = false) => (req, res, next) => {
   const { params: { id }, path } = req;
-  const upload = createProjectUpload(id, path, baseDir, useOriginalName);
-  return upload.single('file')(req, res, next);
+  try {
+    const upload = createProjectUpload(id, path, baseDir, useOriginalName);
+    return upload.single('file')(req, res, next);
+  } catch (e) {
+    next(e);
+  }
 };
 
 const createArrayUpload = (baseDir, useOriginalName = false) => (req, res, next) => {
   const { params: { id }, path } = req;
-  const upload = createProjectUpload(id, path, baseDir, useOriginalName);
-  return upload.array('files')(req, res, next);
+  try {
+    const upload = createProjectUpload(id, path, baseDir, useOriginalName);
+    return upload.array('files')(req, res, next);
+  } catch (e) {
+    next(e);
+  }
 };
 
 const createProjectFilesResponse = fileType => asyncHandler(async (req, res) => {

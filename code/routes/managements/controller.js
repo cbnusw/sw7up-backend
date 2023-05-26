@@ -194,7 +194,7 @@ const getStudents = async (req, res) => {
   const filter = await createFilter(query);
   const total = await Student.countDocuments(filter);
   const documents = await Student.find(filter).sort({
-    department: 1, grade: 1, name: 1
+    department: 1, name: 1
   }).limit(limit).skip(skip).populate({ path: 'professor' });
   
   res.json(createResponse(res, { total, documents }));
@@ -261,7 +261,7 @@ const getTopcits = async (req, res) => {
   const filter = await createFilter(query);
   const total = await Topcit.countDocuments(filter);
   const documents = await Topcit.find(filter).sort({
-    no: -1
+    no: -1, 'student.name': 1
   }).limit(limit).skip(skip);
   
   res.json(createResponse(res, { total, documents }));
@@ -345,7 +345,7 @@ const getTopcitStats = async (req, res) => {
   const total = await TopcitStat.countDocuments(filter);
   const documents = await TopcitStat.find(filter).sort({
     no: -1
-  }).limit(limit).skip(skip);
+  }).limit(limit).skip(skip).lean();
   
   res.json(createResponse(res, { total, documents }));
   

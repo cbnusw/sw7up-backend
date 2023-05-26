@@ -54,7 +54,10 @@ const getStudentProjects = async (req, res) => {
 
 const getStudentProjectYears = async (req, res) => {
   const { studentId } = req;
-  const filter = { creator: typeof studentId === 'string' ? new Types.ObjectId(studentId) : studentId };
+  const filter = {
+    creator: typeof studentId === 'string' ? new Types.ObjectId(studentId) : studentId,
+    source: { $ne: null }
+  };
   const years = await service.getStudentProjectYears(filter);
   res.json(createResponse(res, years));
 };

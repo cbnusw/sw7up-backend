@@ -36,7 +36,6 @@ const getLanguagesOfStudent = async (req, res, next) => {
       { $unwind: '$meta' },
       { $match: { 'meta.language': { $in } } }
     ]);
-    console.log(JSON.stringify(result, null, 2));
     res.json(createResponse(res));
   }
   

@@ -7,7 +7,6 @@ const dayjs = require('dayjs');
 const getMyReport = async (req, res) => {
   const { query, user } = req;
   const filter = _convertReportQuery(query, user.info);
-  console.log(filter);
   const [total, languages, projects] = await Promise.all([
     service.getTotalStat(filter),
     service.getLanguages(filter),

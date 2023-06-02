@@ -2,21 +2,13 @@ const { Project, LanguageFilter } = require('../../../shared/models');
 
 const getTotalStat = async ($match) => {
   const $in = await _getAvailableLanguages();
-  console.log($in);
   const getTotal = async ($sum) => {
-    console.log((await Project.aggregate([
-      { $match },
-      { $unwind: '$meta' },
-      // { $match: { 'meta.language': { $in } } },
-      // { $group: { _id: null, count: { $sum } } }
-    ])));
     const result = await Project.aggregate([
       { $match },
       { $unwind: '$meta' },
       { $match: { 'meta.language': { $in } } },
       { $group: { _id: null, count: { $sum } } }
     ]);
-    console.log(result);
     return result[0]?.count || 0;
   };
   

@@ -12,6 +12,7 @@ router.patch('/levels/:id/name', ...isOperator, controller.updateLevelName);
 router.delete('/levels/:id', ...isOperator, controller.removeLevel);
 
 router.get('/subjects', controller.getSubjects);
+router.get('/subjects/:id', controller.getSubject);
 router.get('/subjects/:id/sequence', controller.getSubjectSequence);
 router.post('/subjects', ...isOperator, controller.createSubject);
 router.patch('/subjects/:id/name', ...isOperator, controller.updateSubjectName);

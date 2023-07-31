@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler');
+const { Types } = require('mongoose');
 const { LanguageFilter, Project } = require('../../../shared/models');
 const { createResponse } = require('../../../shared/utils/response');
-const { Types } = require('mongoose');
 const { SEMESTERS } = require('../../../shared/constants');
 
 const count = async (req, res) => {

@@ -1,10 +1,37 @@
-const { PROJECT_ID_REQUIRED } = require('../../../shared/errors');
+const { PROJECT_ID_REQUIRED, LOGIN_REQUIRED, FORBIDDEN, USER_INFO_NOT_FOUND } = require('../../../shared/errors');
 const { createUpload } = require('../../services/file.service');
 const asyncHandler = require('express-async-handler');
 const { PROJECT_NOT_FOUND, FILE_NOT_UPLOADED } = require('../../../shared/errors');
-const { Project, ProjectFile } = require('../../../shared/models');
+const { Project, ProjectFile, Student, UserInfo } = require('../../../shared/models');
 const mime = require('mime');
 const { createResponse } = require('../../../shared/utils/response');
+const { OPERATOR_ROLES } = require('../../../shared/constants');
+
+const accessible = async (req, res, next) => {
+  const { params: { no }, userNo, user } = req;
+  
+  if (!user) return next(LOGIN_REQUIRED);
+  if (user.role === 'student') {
+    if (no !== userNo) return next(FORBIDDEN);
+  } else if (user.role === 'staff') {
+    const student = await Student.findOne({ no }).populate({ path: 'professor', select: 'no' });
+    if (!student || student.professor?.no !== userNo) return next(FORBIDDEN);
+  } else if (!OPERATOR_ROLES.includes(user.role)) {
+    next(FORBIDDEN);
+  }
+  
+  next();
+};
+
+const noToId = async (req, res, next) => {
+  const { params: { no } } = req;
+  const { _id } = await UserInfo.findOne({ no }).lean() || {};
+  
+  if (!_id) return next(USER_INFO_NOT_FOUND);
+  
+  req.studentId = _id;
+  next();
+};
 
 const createProjectUpload = (id, path, baseDir, useOriginalName) => {
   const chunks = decodeURI(path).split('/').slice(3);
@@ -57,6 +84,8 @@ const createProjectFilesResponse = fileType => asyncHandler(async (req, res) => 
   res.json(createResponse(res, documents, 201));
 });
 
+exports.accessible = asyncHandler(accessible);
+exports.noToId = asyncHandler(noToId);
 exports.createSingleUpload = createSingleUpload;
 exports.createArrayUpload = createArrayUpload;
 exports.createProjectFilesResponse = createProjectFilesResponse;

@@ -1,4 +1,4 @@
-const { LanguageFilter, Project, StepUp, Topcit, TopcitStat } = require('../../../shared/models');
+const { LanguageFilter, Project, StepUp, Topcit, TopcitStat, UserInfo } = require('../../../shared/models');
 
 const getStats = async ($match) => {
   const $in = await _getAvailableLanguages();
@@ -115,30 +115,41 @@ const getStatsByGrades = async ($match) => {
     }, {});
   };
   const [projects, files, codes, comments, students] = await Promise.all([
-    getProjectTotal(), getTotal('$meta.files'), getTotal('$meta.codes'), getTotal('$meta.comments'), getStudents()
+    getProjectTotal(),
+    getTotal('$meta.files'),
+    getTotal('$meta.codes'),
+    getTotal('$meta.comments'),
+    getStudents()
   ]);
   
   return { projects, files, codes, comments, students };
 };
 
 const getStatsByDepartments = async ($match) => {
-  const filters = {
-    '소프트웨어': { ...$match, school: '충북대학교', department: { $in: ['소프트웨어학과', '소프트웨어학부'] } },
-    '컴퓨터공학': { ...$match, school: '충북대학교', department: '컴퓨터공학과' },
-    '정보통신': { ...$match, school: '충북대학교', department: '정보통신공학부' },
-    '지능로봇': { ...$match, school: '충북대학교', department: '지능로봇공학과' },
-    '기타': {
-      ...$match,
-      $or: [
-        { school: { $ne: '충북대학교' } },
-        {
-          $and: [
-            { school: '충북대학교' },
-            { department: { $nin: ['소프트웨어학과', '소프트웨어학부', '컴퓨터공학과', '정보통신공학부', '지능로봇학과'] } }
-          ]
-        }
-      ]
-    }
+  $match = { ...$match };
+  const departments = $match.department?.$in || ['소프트웨어학과', '소프트웨어학부', '컴퓨터공학과', '정보통신공학부', '지능로봇공학과', '기타'];
+  delete $match.department;
+  const filters = {};
+  if (departments.includes('소프트웨어학과') || departments.includes('소프트웨어학부')) {
+    const $in = [];
+    if (departments.includes('소프트웨어학과')) $in.push('소프트웨어학과');
+    if (departments.includes('소프트웨어학부')) $in.push('소프트웨어학부');
+    filters['소프트웨어'] = { ...$match, school: '충북대학교', department: { $in } };
+  }
+  if (departments.includes('컴퓨터공학과')) filters['컴퓨터공학'] = { ...$match, school: '충북대학교', department: '컴퓨터공학과' };
+  if (departments.includes('정보통신공학부')) filters['정보통신'] = { ...$match, school: '충북대학교', department: '정보통신공학부' };
+  if (departments.includes('지능로봇공학과')) filters['지능로봇'] = { ...$match, school: '충북대학교', department: '지능로봇공학과' };
+  if (departments.includes('기타')) filters['기타'] = {
+    ...$match,
+    $or: [
+      { school: { $ne: '충북대학교' } },
+      {
+        $and: [
+          { school: '충북대학교' },
+          { department: { $nin: ['소프트웨어학과', '소프트웨어학부', '컴퓨터공학과', '정보통신공학부', '지능로봇학과'] } }
+        ]
+      }
+    ]
   };
   
   const $in = await _getAvailableLanguages();
@@ -265,6 +276,39 @@ const getLanguages = async ($match) => {
   return { projects, files, codes, comments, students };
 };
 
+const getRankings = async ($match, type, limit) => {
+  const $in = await _getAvailableLanguages();
+  const $sum = `$meta.${type}`;
+  const pipeline = [
+    { $match },
+  ];
+  type && type !== 'projects' ? pipeline.push(
+    { $unwind: '$meta' },
+    { $match: { 'meta.language': { $in } } },
+    { $group: { _id: { creator: '$creator' }, count: { $sum } } },
+  ) : pipeline.push(
+    { $group: { _id: { creator: '$creator' }, count: { $sum: 1 } } },
+  );
+  pipeline.push(
+    { $sort: { count: -1 } },
+  );
+  
+  let documents = (
+    await Project.aggregate(pipeline).allowDiskUse(true)
+  ).map(doc => ({ student: doc._id.creator, count: doc.count }));
+  
+  documents = await Promise.all(documents.map(async doc => ({
+    student: await UserInfo.findById(doc.student),
+    count: doc.count
+  })));
+  
+  documents = documents.filter(doc => doc.student.university === '충북대학교');
+  
+  if (limit && !isNaN(+limit)) documents.splice(+limit);
+  
+  return documents;
+};
+
 const getTopcitStats = async (filter) => {
   const documents = await TopcitStat.find(filter).lean();
   return documents.sort((a, b) => {
@@ -280,7 +324,7 @@ const getTopcits = async (no) => {
   return Topcit.find({ 'student.no': no }).sort({ no: -1 }).lean();
 };
 const getStepUps = async (no) => {
-  return StepUp.find({ no }).sort({ level: -1 }).lean();
+  return StepUp.find({ no }).sort({ performedAt: -1 }).lean();
 };
 
 async function _getAvailableLanguages () {
@@ -293,6 +337,7 @@ exports.getStatsByGrades = getStatsByGrades;
 exports.getStatsByDepartments = getStatsByDepartments;
 exports.getStudentProjectYears = getStudentProjectYears;
 exports.getLanguages = getLanguages;
+exports.getRankings = getRankings;
 exports.getTopcitStats = getTopcitStats;
 exports.getTopcits = getTopcits;
 exports.getStepUps = getStepUps;

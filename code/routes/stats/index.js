@@ -12,6 +12,8 @@ router.get('/projects', controller.getProjects);
 // query: 연도
 router.get('/languages', controller.getLanguages);
 
+router.get('/rankings', controller.getRankings);
+
 // query: 회차
 router.get('/topcit-stats/:no', controller.getTopcitStats);
 
@@ -53,6 +55,10 @@ router.get(
   isAuthenticated,
   accessible,
   controller.getStudentStepUps
+);
+
+router.get(
+  '/:no/coding-level',
 );
 
 module.exports = router;

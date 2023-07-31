@@ -57,8 +57,14 @@ const getSubjects = async (req, res) => {
   const { parent = null, level } = req.query;
   const condition = { level, parent: parent ?? { $eq: null } };
   
-  const data = await StepUpSubject.find(condition);
+  const data = await StepUpSubject.find(condition).lean();
   res.json(createResponse(res, data));
+};
+
+const getSubject = async (req, res) => {
+  const { params: { id } } = req;
+  const subject = await StepUpSubject.findById(id).lean();
+  res.json(createResponse(res, subject));
 };
 
 const getSubjectSequence = async (req, res) => {
@@ -116,8 +122,9 @@ const removeSubject = async (req, res) => {
 };
 
 const getContents = async (req, res) => {
-  const { query: { subject } } = req;
+  const { query: { subject, tag } } = req;
   const condition = subject ? { subject } : {};
+  if (tag) condition.tags = tag;
   const contents = await StepUpContent.find(condition)
     .populate({ path: 'writer', model: UserInfo });
   
@@ -193,6 +200,7 @@ exports.reorderLevels = asyncHandler(reorderLevels);
 exports.updateLevelName = asyncHandler(updateLevelName);
 exports.removeLevel = asyncHandler(removeLevel);
 exports.getSubjects = asyncHandler(getSubjects);
+exports.getSubject = asyncHandler(getSubject);
 exports.getSubjectSequence = asyncHandler(getSubjectSequence);
 exports.createSubject = asyncHandler(createSubject);
 exports.updateSubjectName = asyncHandler(updateSubjectName);

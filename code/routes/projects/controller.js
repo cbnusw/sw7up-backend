@@ -92,6 +92,18 @@ const getMyProjects = async (req, res) => {
   res.json(createResponse(res, data));
 };
 
+const getStudentProjectsGroupByYear = async (req, res) => {
+  const { studentId } = req;
+  const creator = typeof studentId === 'string' ? new Types.ObjectId(studentId) : studentId;
+  const result = await Project.aggregate([
+    { $match: { creator, source: { $ne: null } } },
+    { $group: { _id: '$year', projects: { $push: '$$ROOT' } } },
+    { $project: { _id: 0, year: '$_id', projects: '$projects' } },
+    { $sort: { year: -1, 'projects.performedAt': -1 } }
+  ]);
+  res.json(createResponse(res, result));
+};
+
 const getMyNoneSourceProjects = async (req, res) => {
   const { query, user } = req;
   const data = await search({ ...query, source: { $eq: null }, creator: new Types.ObjectId(user.info) }, ['name']);
@@ -558,6 +570,7 @@ const removeProject = async (req, res) => {
 exports.succssResponse = successResponse;
 exports.getProjects = asyncHandler(getProjects);
 exports.getMyProjects = asyncHandler(getMyProjects);
+exports.getStudentProjectsGroupByYear = asyncHandler(getStudentProjectsGroupByYear);
 exports.getMyNoneSourceProjects = asyncHandler(getMyNoneSourceProjects);
 exports.getProjectSourceCode = asyncHandler(getProjectSourceCode);
 exports.downloadDocument = asyncHandler(downloadDocument);

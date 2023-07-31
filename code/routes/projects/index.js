@@ -1,12 +1,19 @@
 const { Router } = require('express');
 const { isStudent, isAuthenticated } = require('../../../shared/middlewares/auth');
 const controller = require('./controller');
-const { createSingleUpload, createArrayUpload } = require('./middlewares');
+const { createSingleUpload, createArrayUpload, accessible, noToId } = require('./middlewares');
 
 const router = Router();
 
 router.get('/', controller.getProjects);
 router.get('/me', isStudent, controller.getMyProjects);
+router.get(
+  '/groupby/year/students/:no',
+  isAuthenticated,
+  accessible,
+  noToId,
+  controller.getStudentProjectsGroupByYear
+);
 router.get('/none-source/me', isStudent, controller.getMyNoneSourceProjects);
 router.get('/source-code/:id', controller.getProjectSourceCode);
 router.get('/documents/:id/download', controller.downloadDocument);

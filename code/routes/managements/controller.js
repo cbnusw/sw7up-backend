@@ -6,18 +6,15 @@ const { LanguageFilter, Professor, Project, StepUp, Student, Topcit, TopcitStat,
 const { toRegEx } = require('../../../shared/models/mappers');
 const { createResponse } = require('../../../shared/utils/response');
 const { ROOT_DIR } = require('../../../shared/env');
+const { convertDepartmentFilter } = require('../../utils/departments-filter');
 
 const _createMatchPipeline = async query => {
-  const MAJORS = [
-    '소프트웨어학과', '소프트웨어학부', '컴퓨터공학과', '정보통신공학부', '지능로봇공학과'
-  ];
-  
   const {
-    createdStart,
-    createdEnd,
+    startCreatedAt,
+    endCreatedAt,
     grade,
-    performedStart,
-    performedEnd,
+    startPerformedAt,
+    endPerformedAt,
     creatorName,
     creatorNo,
     school,
@@ -29,27 +26,18 @@ const _createMatchPipeline = async query => {
   } = query;
   const $match = {};
   
-  if (createdStart) $match.createdAt = { $gte: new Date(createdStart) };
-  if (createdEnd) $match.createdAt ? $match.createdAt.$lte = new Date(createdEnd) : $match.createdAt = { $lte: new Date(createdEnd) };
+  if (startCreatedAt) $match.createdAt = { $gte: new Date(startCreatedAt) };
+  if (endCreatedAt) $match.createdAt ? $match.createdAt.$lte = new Date(endCreatedAt) : $match.createdAt = { $lte: new Date(endCreatedAt) };
   if (grade) $match.grade = +grade;
-  if (performedStart) $match.performedAt = { $gte: performedStart };
-  if (performedEnd) $match.performedAt ? $match.performedAt.$lte = performedEnd : $match.performedAt = { $lte: performedEnd };
+  if (startPerformedAt) $match.performedAt = { $gte: startPerformedAt };
+  if (endPerformedAt) $match.performedAt ? $match.performedAt.$lte = endPerformedAt : $match.performedAt = { $lte: endPerformedAt };
   if (!creatorNo && creatorName) {
     const $in = (await UserInfo.find({ name: creatorName }).select('_id').lean()).map(user => user._id);
     $match.creator = { $in };
   }
   if (creatorNo) $match.creator = (await UserInfo.findOne({ no: creatorNo }).select('_id').lean())._id;
   if (school) school === '충북대학교' ? $match.school = school : $match.school = { $ne: '충북대학교' };
-  if (departments) {
-    const departmentList = departments.split(',');
-    if (departmentList.includes('기타')) {
-      const $nin = MAJORS.filter(major => !departmentList.includes(major));
-      if ($nin.length > 0) $match.department = { $nin };
-    } else {
-      const $in = departmentList;
-      $match.department = { $in };
-    }
-  }
+  if (departments) convertDepartmentFilter($match, departments);
   if (projectType) $match.projectType = projectType;
   if (subjectName) $match['subject.name'] = toRegEx(subjectName);
   if (ownProjectType) $match['ownProject.type'] = ownProjectType;
@@ -418,31 +406,30 @@ const getStepUpData = async (req, res) => {
   const filter = await createFilter(query);
   const total = await StepUp.countDocuments(filter);
   const documents = await StepUp.find(filter).sort({
+    performedAt: -1,
+    level: -1,
     department: 1,
     name: 1,
-    no: 1,
-    level: -1,
   }).limit(limit).skip(skip);
   
   res.json(createResponse(res, { total, documents }));
   
   async function createFilter (query) {
-    const { department, studentNo, studentName, level } = query;
+    const { startPerformedAt, endPerformedAt, level, pass, departments, no, name } = query;
     const filter = {};
     
-    if (department) filter.department = department;
+    if (startPerformedAt && endPerformedAt) filter.performedAt = { $gte: startPerformedAt, $lte: endPerformedAt };
+    else if (startPerformedAt) filter.performedAt = { $gte: startPerformedAt };
+    else if (endPerformedAt) filter.performedAt = { $lte: endPerformedAt };
+    
     if (level) filter.level = +level;
-    if (studentNo) filter.no = studentNo;
-    else if (studentName) filter.name = toRegEx(studentName);
+    if (pass) filter.pass = pass === 'true';
+    if (departments) convertDepartmentFilter(filter, departments);
+    if (no) filter.no = no;
+    else if (name) filter.name = toRegEx(name);
     
     return filter;
   }
-};
-
-const getStepUpDapartments = async (req, res) => {
-  const departments = await StepUp.distinct('department');
-  departments.sort();
-  res.json(createResponse(res, departments));
 };
 
 const getStepUpLevels = async (req, res) => {
@@ -472,14 +459,6 @@ const removeStepUp = async (req, res) => {
   res.json(createResponse(res));
 };
 
-const _createStatisticMatchPipeline = async query => {
-  const $in = (await LanguageFilter.find()).map(filter => filter.name);
-  
-  return [];
-};
-
-const getStatistic = async (req, res) => {
-};
 
 exports.getProjects = asyncHandler(getProjects);
 exports.downloadProjects = asyncHandler(downloadProjects);
@@ -507,9 +486,6 @@ exports.registerTopcitStats = asyncHandler(registerTopcitStats);
 exports.removeTopcitStat = asyncHandler(removeTopcitStat);
 
 exports.getStepUpData = asyncHandler(getStepUpData);
-exports.getStepUpDapartments = asyncHandler(getStepUpDapartments);
 exports.getStepUpLevels = asyncHandler(getStepUpLevels);
 exports.registerStepUpData = asyncHandler(registerStepUpData);
 exports.removeStepUp = asyncHandler(removeStepUp);
-
-exports.getStatistic = asyncHandler(getStatistic);

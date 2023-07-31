@@ -6,7 +6,6 @@ const router = Router();
 
 router.get('/projects', ...isOperator, controller.getProjects);
 router.get('/projects/download', ...isOperator, controller.downloadProjects);
-router.get('/projects/statistic', controller.getStatistic);
 
 router.get('/students', ...isOperator, controller.getStudents);
 router.get('/students/departments', controller.getStudentDepartments);
@@ -31,7 +30,6 @@ router.post('/topcit-stats/register', ...isOperator, controller.registerTopcitSt
 router.delete('/topcit-stats/:id', ...isOperator, controller.removeTopcitStat);
 
 router.get('/step-up', ...isOperator, controller.getStepUpData);
-router.get('/step-up/departments', controller.getStepUpDapartments);
 router.get('/step-up/levels', controller.getStepUpLevels);
 router.post('/step-up/register', ...isOperator, controller.registerStepUpData);
 router.delete('/step-up/:id', ...isOperator, controller.removeStepUp);

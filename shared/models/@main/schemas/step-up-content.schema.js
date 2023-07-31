@@ -24,6 +24,10 @@ const schema = createSchema({
   writer: {
     type: Schema.Types.ObjectId,
     required: true,
+  },
+  tags: {
+    type: [String],
+    index: true,
   }
 });
 

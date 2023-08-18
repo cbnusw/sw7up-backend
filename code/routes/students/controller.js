@@ -1,8 +1,9 @@
 const asyncHandler = require('express-async-handler');
 const { Types } = require('mongoose');
-const service = require('./service');
-const { createResponse } = require('../../../shared/utils/response');
 const dayjs = require('dayjs');
+const { createResponse } = require('../../../shared/utils/response');
+const { Student, UserInfo } = require('../../../shared/models');
+const service = require('./service');
 
 const getMyReport = async (req, res) => {
   const { query, user } = req;
@@ -24,6 +25,13 @@ const getMyReport = async (req, res) => {
     }, {}),
     projects
   }));
+};
+
+const getMyStudentInfo = async (req, res) => {
+  const { user } = req;
+  const userInfo = await UserInfo.findById(user.info).lean();
+  const student = await Student.findOne({ no: userInfo.no }).lean();
+  res.json(createResponse(res, student));
 };
 
 function _convertReportQuery (query, creator) {
@@ -58,3 +66,4 @@ function _convertReportQuery (query, creator) {
 }
 
 exports.getMyReport = asyncHandler(getMyReport);
+exports.getMyStudentInfo = asyncHandler(getMyStudentInfo);

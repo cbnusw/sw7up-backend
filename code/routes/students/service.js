@@ -1,4 +1,4 @@
-const { Project, LanguageFilter } = require('../../../shared/models');
+const { LanguageFilter, Project } = require('../../../shared/models');
 
 const getTotalStat = async ($match) => {
   const $in = await _getAvailableLanguages();

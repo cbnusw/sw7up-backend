@@ -1,4 +1,5 @@
 const { LanguageFilter, Project, StepUp, Topcit, TopcitStat, UserInfo } = require('../../../shared/models');
+const { Types } = require('mongoose');
 
 const getStats = async ($match) => {
   const $in = await _getAvailableLanguages();
@@ -323,8 +324,21 @@ const getTopcitStats = async (filter) => {
 const getTopcits = async (no) => {
   return Topcit.find({ 'student.no': no }).sort({ no: -1 }).lean();
 };
+
 const getStepUps = async (no) => {
   return StepUp.find({ no }).sort({ performedAt: -1 }).lean();
+};
+
+const getCodingLevel = async (creator) => {
+  const $in = await _getAvailableLanguages();
+  creator = typeof creator === 'string' ? new Types.ObjectId(creator) : creator;
+  
+  return await Project.aggregate([
+    { $match: { creator, source: { $ne: null } } },
+    { $unwind: '$meta' },
+    { $match: { 'meta.language': { $in } } },
+    { $group: { _id: '$_id', codes: { $sum: '$meta.codes' } } }
+  ]);
 };
 
 async function _getAvailableLanguages () {
@@ -341,3 +355,4 @@ exports.getRankings = getRankings;
 exports.getTopcitStats = getTopcitStats;
 exports.getTopcits = getTopcits;
 exports.getStepUps = getStepUps;
+exports.getCodingLevel = getCodingLevel;

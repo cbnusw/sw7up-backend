@@ -89,6 +89,16 @@ const getStudentStepUps = async (req, res) => {
   res.json(createResponse(res, documents));
 };
 
+const getMyCodingLevel = async (req, res) => {
+  const { user } = req;
+  res.json(createResponse(res, await service.getCodingLevel(user.info)))
+};
+
+const getCodingLevel = async (req, res) => {
+  const { studentId } = req;
+  res.json(createResponse(res, await service.getCodingLevel(studentId)));
+};
+
 function _convertProjectQuery (query, creator = null) {
   const filter = { source: { $ne: null } };
   const { startYear, endYear, startCreatedAt, endCreatedAt, startPerformedAt, endPerformedAt, department } = query;
@@ -129,3 +139,5 @@ exports.getStudentProjectYears = asyncHandler(getStudentProjectYears);
 exports.getStudentLanguages = asyncHandler(getStudentLanguages);
 exports.getStudentTopcits = asyncHandler(getStudentTopcits);
 exports.getStudentStepUps = asyncHandler(getStudentStepUps);
+exports.getMyCodingLevel = asyncHandler(getMyCodingLevel);
+exports.getCodingLevel = asyncHandler(getCodingLevel);

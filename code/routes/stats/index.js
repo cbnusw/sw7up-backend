@@ -58,7 +58,16 @@ router.get(
 );
 
 router.get(
+  '/me/coding-level',
+  isAuthenticated,
+  controller.getMyCodingLevel,
+);
+
+router.get(
   '/:no/coding-level',
+  accessible,
+  noToId,
+  controller.getCodingLevel,
 );
 
 module.exports = router;

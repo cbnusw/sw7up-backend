@@ -19,7 +19,7 @@ module.exports = (app, staticOptions) => {
   app.use(cors({
     origin(origin, callback) {
       console.log(origin);
-      if (whitelist.indexOf(origin) !== -1) return callback(null, true);
+      if (!origin || whitelist.indexOf(origin) !== -1) return callback(null, true);
       else callback(new Error('Not Allowed Origin'));
     }
   }));

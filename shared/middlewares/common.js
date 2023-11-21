@@ -18,6 +18,7 @@ module.exports = (app, staticOptions) => {
   app.use(morgan(IS_DEV ? 'dev' : 'combined', { stream }));
   app.use(cors({
     origin(origin, callback) {
+      console.log(origin);
       if (whitelist.indexOf(origin) !== -1) return callback(null, true);
       else callback(new Error('Not Allowed Origin'));
     }

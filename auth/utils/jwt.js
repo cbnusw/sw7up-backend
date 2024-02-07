@@ -29,11 +29,7 @@ const options = {
   algorithm: 'RS256'
 };
 
-console.log('JWT_OPTIONS:::', options);
-
 const signAccessToken = payload => {
-  console.error('LOGIN_JWT_OPTIONS:::', options);
-  
   return new Promise((resolve, reject) => jwt.sign(
     payload,
     ACCESS_TOKEN_PRIVET_KEY,
@@ -55,7 +51,6 @@ const signRefreshToken = _id =>
   );
 
 const verifyAccessToken = token => {
-  console.log('JWT_OPTOINS:::', options);
   return new Promise((resolve, reject) => jwt.verify(
     token,
     ACCESS_TOKEN_PUBLIC_KEY,

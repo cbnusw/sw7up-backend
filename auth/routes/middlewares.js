@@ -14,6 +14,7 @@ const {
 
 const isAuthenticated = asyncHandler(async (req, res, next) => {
   const token = req.headers['x-access-token'];
+  console.log('TOKEN::::', token);
 
   if (token) {
     try {

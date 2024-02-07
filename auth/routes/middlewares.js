@@ -20,6 +20,7 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
       req.user = await verifyAccessToken(token);
       return next();
     } catch (e) {
+      console.error(e);
       return next(e);
     }
   }

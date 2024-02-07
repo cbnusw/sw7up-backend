@@ -31,6 +31,7 @@ const options = {
 
 const signAccessToken = payload => {
   console.log('LOGIN_JWT_OPTIONS:::', options);
+  
   return new Promise((resolve, reject) => jwt.sign(
     payload,
     ACCESS_TOKEN_PRIVET_KEY,

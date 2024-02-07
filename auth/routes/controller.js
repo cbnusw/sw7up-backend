@@ -121,8 +121,10 @@ const login = (...roles) => asyncHandler(async (req, res, next) => {
    const [accessToken, refreshToken] = await Promise.all([
       signAccessToken(exUser.profile), signRefreshToken(exUser._id)
    ]);
-
-   await RefreshToken.updateToken(exUser._id, refreshToken);
+  
+  console.log('LOGIN ACCESS TOKEN:::', accessToken);
+  
+  await RefreshToken.updateToken(exUser._id, refreshToken);
 
    res.json(createResponse(res, { accessToken, refreshToken }));
 });

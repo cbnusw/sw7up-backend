@@ -22,6 +22,8 @@ const ACCESS_TOKEN_PUBLIC_KEY = readFileSync(join(ROOT_DIR, 'config/access-token
 const REFRESH_TOKEN_PRIVATE_KEY = readFileSync(join(ROOT_DIR, 'config/refresh-token.private.key'));
 const REFRESH_TOKEN_PUBLIC_KEY = readFileSync(join(ROOT_DIR, 'config/refresh-token.public.key'));
 
+console.log('PUBLIC_KEY:::', ACCESS_TOKEN_PUBLIC_KEY);
+
 const options = {
   issuer,
   subject,

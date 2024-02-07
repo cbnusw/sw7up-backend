@@ -50,6 +50,7 @@ const signRefreshToken = _id =>
   );
 
 const verifyAccessToken = token => {
+  console.log('JWT_OPTOINS:::', options);
   return new Promise((resolve, reject) => jwt.verify(
     token,
     ACCESS_TOKEN_PUBLIC_KEY,

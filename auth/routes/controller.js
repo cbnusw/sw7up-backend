@@ -108,8 +108,10 @@ const join = asyncHandler(async (req, res, next) => {
 
 const login = (...roles) => asyncHandler(async (req, res, next) => {
    const { no, password } = req.body;
-
-   if (!no) return next(REG_NUMBER_REQUIRED);
+  
+  console.log('CALL LOGIN:::', no);
+  
+  if (!no) return next(REG_NUMBER_REQUIRED);
    if (!password) return next(PASSWORD_REQUIRED);
 
    const exUser = await User.findOne({ no });

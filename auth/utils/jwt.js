@@ -29,8 +29,9 @@ const options = {
   algorithm: 'RS256'
 };
 
-const signAccessToken = payload =>
-  new Promise((resolve, reject) => jwt.sign(
+const signAccessToken = payload => {
+  console.log('LOGIN_JWT_OPTIONS:::', options);
+  return new Promise((resolve, reject) => jwt.sign(
     payload,
     ACCESS_TOKEN_PRIVET_KEY,
     {
@@ -38,6 +39,7 @@ const signAccessToken = payload =>
       expiresIn: JWT_ACCESS_TOKEN_EXPIRES_IN
     }, (err, encoded) => err ? reject(err) : resolve(encoded))
   );
+}
 
 const signRefreshToken = _id =>
   new Promise((resolve, reject) => jwt.sign(

@@ -22,7 +22,6 @@ const ACCESS_TOKEN_PUBLIC_KEY = readFileSync(join(ROOT_DIR, 'config/access-token
 const REFRESH_TOKEN_PRIVATE_KEY = readFileSync(join(ROOT_DIR, 'config/refresh-token.private.key'));
 const REFRESH_TOKEN_PUBLIC_KEY = readFileSync(join(ROOT_DIR, 'config/refresh-token.public.key'));
 
-console.log('PUBLIC_KEY:::', ACCESS_TOKEN_PUBLIC_KEY);
 
 const options = {
   issuer,
@@ -51,14 +50,17 @@ const signRefreshToken = _id =>
     }, (err, encoded) => err ? reject(err) : resolve(encoded))
   );
 
-const verifyAccessToken = token =>
-  new Promise((resolve, reject) => jwt.verify(
+const verifyAccessToken = token => {
+  console.log('PUBLIC_KEY:::', ACCESS_TOKEN_PUBLIC_KEY);
+  
+  return new Promise((resolve, reject) => jwt.verify(
     token,
     ACCESS_TOKEN_PUBLIC_KEY,
     options,
     (err, decoded) =>
       err ? reject(err.name === 'TokenExpiredError' ? ACCESS_TOKEN_EXPIRED : INVALID_ACCESS_TOKEN) : resolve(decoded)
   ));
+}
 
 const verifyRefreshToken = token =>
   new Promise((resolve, reject) => jwt.verify(

@@ -29,6 +29,8 @@ const options = {
   algorithm: 'RS256'
 };
 
+console.log('JWT_OPTIONS:::', options);
+
 const signAccessToken = payload => {
   console.error('LOGIN_JWT_OPTIONS:::', options);
   

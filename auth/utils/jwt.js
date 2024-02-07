@@ -24,8 +24,8 @@ const REFRESH_TOKEN_PUBLIC_KEY = readFileSync(join(ROOT_DIR, 'config/refresh-tok
 
 const options = {
   issuer,
-  subject,
-  audience,
+  // subject,
+  // audience,
   algorithm: 'RS256'
 };
 
